@@ -1,5 +1,7 @@
 package jp.uphy.jijiping;
 
+import jp.uphy.jijiping.common.Answers;
+
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;

@@ -15,7 +15,7 @@
  */
 package jp.uphy.jijiping;
 
-import java.net.URL;
+import jp.uphy.jijiping.common.Answers;
 
 
 /**
