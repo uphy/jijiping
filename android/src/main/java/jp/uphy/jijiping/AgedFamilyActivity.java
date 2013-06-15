@@ -18,12 +18,19 @@ package jp.uphy.jijiping;
 import jp.uphy.jijiping.common.Answers;
 
 import android.app.Activity;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.AdapterView.OnItemSelectedListener;
 
 
 /**
@@ -33,7 +40,6 @@ public class AgedFamilyActivity extends Activity {
 
   public static final String INTENT_QUESTION = "question"; //$NON-NLS-1$
   public static final String INTENT_ANSWERS = "answers"; //$NON-NLS-1$
-  private Communicator communicator;
 
   /**
    * {@inheritDoc}
@@ -76,13 +82,40 @@ public class AgedFamilyActivity extends Activity {
 
         @Override
         public void onClick(@SuppressWarnings("unused") View v) {
-          sendAnswer(answerIndex);
+          send(answerIndex);
         }
       });
     }
   }
 
-  void sendAnswer(int i) {
-    this.communicator.sendAnswer(i);
+  void send(int i) {
+    final SendAnswerServiceConnection connection = new SendAnswerServiceConnection(i);
+    bindService(new Intent(this, JijipingService.class), connection, Context.BIND_AUTO_CREATE);
+  }
+
+  class SendAnswerServiceConnection implements ServiceConnection {
+
+    private int answerIndex;
+
+    SendAnswerServiceConnection(int answerIndex) {
+      this.answerIndex = answerIndex;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void onServiceConnected(ComponentName className, IBinder service) {
+      final JijipingService jijipingService = ((JijipingService.JijipingLocalBinder)service).getService();
+      jijipingService.sendAnswer(this.answerIndex);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void onServiceDisconnected(ComponentName className) {
+      // do nothing
+    }
   }
 }

@@ -17,6 +17,10 @@
 
     <string name="send">送信</string>
     
-    <string name="id">ログインID</string>
+    <string name="id">No</string>
+    
+    <string name="young">わかもの</string>
+    
+    <string name="aged">じいちゃんばあちゃん</string>
 
 </resources>
