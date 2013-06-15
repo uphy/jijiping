@@ -19,11 +19,14 @@ import roboguice.activity.RoboActivity;
 import roboguice.inject.InjectView;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.Display;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 
@@ -46,7 +49,14 @@ public class CheckInActivity extends RoboActivity {
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.checkin);
-
+    // ウィンドウマネージャのインスタンス取得
+    WindowManager wm = (WindowManager)getSystemService(WINDOW_SERVICE);
+    // ディスプレイのインスタンス生成
+    Display disp = wm.getDefaultDisplay();
+    
+    agedButton.setLayoutParams(new LinearLayout.LayoutParams((int)(disp.getWidth()*0.5),(int)(disp.getWidth()*0.5)) );
+    youngButton.setLayoutParams(new LinearLayout.LayoutParams((int)(disp.getWidth()*0.5),(int)(disp.getWidth()*0.5)) );
+    
     this.agedButton.setOnClickListener(new OnClickListener() {
 
       @Override

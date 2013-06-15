@@ -26,11 +26,9 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.AdapterView.OnItemSelectedListener;
 
 
 /**
@@ -48,7 +46,7 @@ public class AgedFamilyActivity extends Activity {
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.younger);
-
+    
     final String question = getIntent().getStringExtra(INTENT_QUESTION);
     final Answers answers = (Answers)getIntent().getSerializableExtra(INTENT_ANSWERS);
 
@@ -63,6 +61,7 @@ public class AgedFamilyActivity extends Activity {
     // question
     final TextView questionView = new TextView(this);
     questionView.setText(question);
+    questionView.setTextSize(30);
     layout.addView(questionView);
     // answer
     createAnswerViews(answers, layout);
