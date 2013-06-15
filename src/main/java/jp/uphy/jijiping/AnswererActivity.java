@@ -16,7 +16,6 @@
 package jp.uphy.jijiping;
 
 import roboguice.activity.RoboActivity;
-import android.app.AlertDialog;
 import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -30,8 +29,18 @@ import android.widget.TextView;
  */
 public class AnswererActivity extends RoboActivity {
 
-  public static final String INTENT_QUESTION = "question";
-  public static final String INTENT_ANSWERS = "answers";
+  /** 質問のインテントパラメータ名です。 */
+  public static final String INTENT_QUESTION = "question"; //$NON-NLS-1$
+  /** 回答選択肢のインテントパラメータ名です。 */
+  public static final String INTENT_ANSWERS = "answers"; //$NON-NLS-1$
+  private final Communicator communicator;
+
+  /**
+   * {@link AnswererActivity}オブジェクトを構築します。
+   */
+  public AnswererActivity() {
+    this.communicator = new DummyCommunicator(this);
+  }
 
   /**
    * {@inheritDoc}
@@ -52,10 +61,17 @@ public class AnswererActivity extends RoboActivity {
     final LinearLayout layout = new LinearLayout(this);
     layout.setOrientation(LinearLayout.VERTICAL);
 
+    // question
     final TextView questionView = new TextView(this);
     questionView.setText(question);
     layout.addView(questionView);
+    // answer
+    createAnswerViews(answers, layout);
 
+    setContentView(layout);
+  }
+
+  private void createAnswerViews(final Answers answers, final LinearLayout layout) {
     int i = 0;
     for (final String answer : answers) {
       final Button answerView = new Button(this);
@@ -66,15 +82,14 @@ public class AnswererActivity extends RoboActivity {
       answerView.setOnClickListener(new OnClickListener() {
 
         @Override
-        public void onClick(View v) {
+        public void onClick(@SuppressWarnings("unused") View v) {
           sendAnswer(answerIndex);
         }
       });
     }
-    setContentView(layout);
   }
 
   void sendAnswer(int i) {
-    new AlertDialog.Builder(AnswererActivity.this).setMessage(String.format("send answer : %d", i)).create().show();
+    this.communicator.sendAnswer(i);
   }
 }
