@@ -61,6 +61,7 @@ public class JijipingService extends RoboService implements JijipingClient.Recei
       return;
     }
     this.checkinId = intent.getStringExtra(INTENT_CHECKID);
+    client.checkin(this.checkinId);
   }
 
   /**
@@ -84,10 +85,9 @@ public class JijipingService extends RoboService implements JijipingClient.Recei
    */
   @Override
   public void answerReceived(int answerIndex) {
-    System.out.println("AnswerReceived:" + answerIndex);
-    //    final Intent intent = new Intent(this, YoungrFamilyActivity.class);
-    //    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-    //    startActivity(intent);
+    final Intent intent = new Intent(this, YoungrFamilyActivity.class);
+    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+    startActivity(intent);
   }
 
   /**
