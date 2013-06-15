@@ -13,9 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package jp.uphy.cookpad24.app;
-
-import jp.uphy.gevoseek.app.ErrorNotifier;
+package jp.uphy.jijiping.app;
 
 import android.app.Application;
 
@@ -43,7 +41,7 @@ public class AndroidModule extends AbstractModule {
    */
   @Override
   protected void configure() {
-    bind(ErrorNotifier.class).toInstance(new AndroidErrorNotifier(this.application));
+    bind(ErrorNotifier.class).toInstance(new ErrorNotifierImpl(this.application));
   }
 
 }

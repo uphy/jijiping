@@ -1,12 +1,10 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<parent>
-		<groupId>jp.uphy.gevoseek</groupId>
-		<artifactId>gevoseek-parent</artifactId>
-		<version>0.0.1-SNAPSHOT</version>
-	</parent>
-	<artifactId>gevoseek-android</artifactId>
+
+	<groupId>jp.uphy</groupId>
+	<artifactId>jijiping</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
 	<packaging>apk</packaging>
 
 	<properties>
@@ -21,17 +19,6 @@
 			<artifactId>android</artifactId>
 			<version>${platform.version}</version>
 			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>${project.groupId}</groupId>
-			<artifactId>gevoseek-core</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>${project.groupId}</groupId>
-			<artifactId>gevoseek-spi-all</artifactId>
-			<version>${project.version}</version>
-			<type>pom</type>
 		</dependency>
 		<dependency>
 			<groupId>org.roboguice</groupId>

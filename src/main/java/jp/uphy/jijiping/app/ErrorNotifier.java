@@ -13,24 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package jp.uphy.cookpad24.app;
-
-import roboguice.RoboGuice;
-import android.app.Application;
-
+package jp.uphy.jijiping.app;
 
 /**
+ * 例外を処理するインターフェースです。
+ * 
  * @author Yuhi Ishikura
  */
-public class GevoseekApplication extends Application {
+public interface ErrorNotifier {
 
   /**
-   * {@inheritDoc}
+   * エラーを通知します。
+   * 
+   * @param e 例外
+   * @param message メッセージ
    */
-  @Override
-  public void onCreate() {
-    super.onCreate();
-    RoboGuice.setBaseApplicationInjector(this, RoboGuice.DEFAULT_STAGE, RoboGuice.newDefaultRoboModule(this), new AndroidModule(this));
-  }
+  void notifyError(Throwable e, String message);
+
+  /**
+   * エラーを通知します。
+   * 
+   * @param e 例外
+   */
+  void notifyError(Throwable e);
+
+  /**
+   * エラーを通知します。
+   * 
+   * @param message メッセージ
+   */
+  void notifyError(String message);
 
 }

@@ -13,34 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package jp.uphy.cookpad24;
+package jp.uphy.jijiping.app;
 
-import jp.uphy.gevoseek.app.ErrorNotifier;
-
-import roboguice.activity.RoboActivity;
-import android.os.Bundle;
-
-import com.google.inject.Inject;
+import roboguice.RoboGuice;
+import android.app.Application;
 
 
 /**
  * @author Yuhi Ishikura
  */
-public class MainActivity extends RoboActivity {
-
-  @Inject
-  private ErrorNotifier errorNotifier;
+public class GevoseekApplication extends Application {
 
   /**
    * {@inheritDoc}
    */
   @Override
-  protected void onCreate(Bundle savedInstanceState) {
-    super.onCreate(savedInstanceState);
-    setContentView(R.layout.main);
-
-    System.out.println(errorNotifier);
-    this.errorNotifier.notifyError("aaaa");
+  public void onCreate() {
+    super.onCreate();
+    RoboGuice.setBaseApplicationInjector(this, RoboGuice.DEFAULT_STAGE, RoboGuice.newDefaultRoboModule(this), new AndroidModule(this));
   }
 
 }

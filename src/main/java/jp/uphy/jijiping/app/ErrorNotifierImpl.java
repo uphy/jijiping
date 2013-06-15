@@ -13,9 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package jp.uphy.cookpad24.app;
-
-import jp.uphy.gevoseek.app.ErrorNotifier;
+package jp.uphy.jijiping.app;
 
 import android.content.Context;
 import android.content.Intent;
@@ -24,16 +22,16 @@ import android.content.Intent;
 /**
  * @author Yuhi Ishikura
  */
-public class AndroidErrorNotifier implements ErrorNotifier {
+class ErrorNotifierImpl implements ErrorNotifier {
 
   private Context context;
 
   /**
-   * {@link AndroidErrorNotifier}オブジェクトを構築します。
+   * {@link ErrorNotifierImpl}オブジェクトを構築します。
    * 
    * @param context コンテキスト
    */
-  AndroidErrorNotifier(Context context) {
+  ErrorNotifierImpl(Context context) {
     this.context = context;
   }
 
