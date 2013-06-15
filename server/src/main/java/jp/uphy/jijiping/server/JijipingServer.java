@@ -19,6 +19,8 @@ import jp.uphy.jijiping.common.JijipingClient;
 import jp.uphy.jijiping.common.Util;
 
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.InetSocketAddress;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
@@ -33,6 +35,9 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 
 /**
@@ -41,6 +46,14 @@ import java.util.StringTokenizer;
 public class JijipingServer {
 
   private Map<String, Set<ClientContext>> clientIdToContext = new HashMap<String, Set<JijipingServer.ClientContext>>();
+  private static Logger logger = Logger.getLogger(JijipingServer.class.getName());
+
+  static {
+    logger.setLevel(Level.ALL);
+    final ConsoleHandler h = new ConsoleHandler();
+    h.setLevel(Level.ALL);
+    logger.addHandler(h);
+  }
 
   /**
    * サーバーを開始します。
@@ -52,6 +65,8 @@ public class JijipingServer {
     final ServerSocketChannel serverChannel = ServerSocketChannel.open();
     serverChannel.socket().setReuseAddress(true);
     serverChannel.socket().bind(new InetSocketAddress(port));
+    logger.fine("Server started at " + port); //$NON-NLS-1$
+
     serverChannel.configureBlocking(false);
     final Selector selector = Selector.open();
     final SelectionKey serverKey = serverChannel.register(selector, SelectionKey.OP_ACCEPT);
@@ -60,50 +75,65 @@ public class JijipingServer {
       for (Iterator<SelectionKey> it = keys.iterator(); it.hasNext();) {
         SelectionKey key = it.next();
         it.remove();
-        if (key == serverKey && key.isAcceptable()) {
-          final SocketChannel channel = serverChannel.accept();
-          channel.configureBlocking(false);
-          SelectionKey clientKey = channel.register(selector, SelectionKey.OP_READ);
-          final ClientContext context = new ClientContext();
-          clientKey.attach(context);
-        } else {
-          if (key.isReadable()) {
-            final SocketChannel channel = (SocketChannel)key.channel();
-            final String line = Util.read(channel);
-            final ClientContext context = (ClientContext)key.attachment();
+        try {
+          if (key == serverKey && key.isAcceptable()) {
+            final SocketChannel channel = serverChannel.accept();
+            logger.fine("New client accepted : " + channel); //$NON-NLS-1$
+            channel.configureBlocking(false);
+            SelectionKey clientKey = channel.register(selector, SelectionKey.OP_READ);
+            final ClientContext context = new ClientContext();
+            clientKey.attach(context);
+          } else {
+            if (key.isReadable()) {
+              final SocketChannel channel = (SocketChannel)key.channel();
+              final String line = Util.read(channel);
+              logger.fine("Reading command => " + line); //$NON-NLS-1$
+              final ClientContext context = (ClientContext)key.attachment();
 
-            StringTokenizer tokenizer = new StringTokenizer(line, ":"); //$NON-NLS-1$
-            final int commandId = Integer.parseInt(tokenizer.nextToken());
-            final String clientId = tokenizer.nextToken();
-            final String parameter;
-            if (tokenizer.hasMoreTokens()) {
-              parameter = tokenizer.nextToken();
-            } else {
-              parameter = ""; //$NON-NLS-1$
-            }
-            switch (commandId) {
-              case JijipingClient.CHECKIN_COMMAND_ID:
-                context.setKey(key);
-                checkin(clientId, context);
-                continue;
-              case JijipingClient.CHECKOUT_COMMAND_ID:
-                checkout(clientId, context);
-                continue;
-            }
+              StringTokenizer tokenizer = new StringTokenizer(line, ":"); //$NON-NLS-1$
+              final int commandId = Integer.parseInt(tokenizer.nextToken());
+              final String clientId = tokenizer.nextToken();
+              final String parameter;
+              if (tokenizer.hasMoreTokens()) {
+                parameter = tokenizer.nextToken();
+              } else {
+                parameter = ""; //$NON-NLS-1$
+              }
+              switch (commandId) {
+                case JijipingClient.CHECKIN_COMMAND_ID:
+                  context.setKey(key);
+                  checkin(clientId, context);
+                  continue;
+                case JijipingClient.CHECKOUT_COMMAND_ID:
+                  checkout(clientId, context);
+                  continue;
+              }
 
-            write(context, clientId, String.valueOf(commandId) + ":" + parameter); //$NON-NLS-1$
-          }
-          if (key.isWritable() && key.isValid()) {
-            final ClientContext context = (ClientContext)key.attachment();
-            String message;
-            final SocketChannel channel = (SocketChannel)key.channel();
-            while ((message = context.popMessage()) != null) {
-              Util.write(channel, message);
+              write(context, clientId, String.valueOf(commandId) + ":" + parameter); //$NON-NLS-1$
+            }
+            if (key.isWritable() && key.isValid()) {
+              final ClientContext context = (ClientContext)key.attachment();
+              String message;
+              final SocketChannel channel = (SocketChannel)key.channel();
+              while ((message = context.popMessage()) != null) {
+                logger.fine(String.format("Writing command => %s", message)); //$NON-NLS-1$
+                Util.write(channel, message);
+              }
             }
           }
+        } catch (Throwable e) {
+          logger.severe(exceptionToString(e));
         }
       }
     }
+  }
+
+  private static String exceptionToString(Throwable e) {
+    final StringWriter sw = new StringWriter();
+    final PrintWriter pw = new PrintWriter(sw);
+    e.printStackTrace(pw);
+    pw.flush();
+    return sw.toString();
   }
 
   private void checkout(String clientId, ClientContext context) {
@@ -183,8 +213,9 @@ public class JijipingServer {
   }
 
   public static void main(String[] args) throws IOException {
+    final int port = Integer.parseInt(args[0]);
     final JijipingServer server = new JijipingServer();
-    server.start(12345);
+    server.start(port);
   }
 
 }
