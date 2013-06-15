@@ -68,4 +68,12 @@ public class Answers implements Serializable, Iterable<String> {
     return this.answers.iterator();
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String toString() {
+    return this.answers.toString();
+  }
+
 }

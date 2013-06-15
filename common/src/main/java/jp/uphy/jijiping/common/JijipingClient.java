@@ -16,19 +16,19 @@
 package jp.uphy.jijiping.common;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.StringWriter;
-import java.io.Writer;
-import java.net.Socket;
+import java.io.StringReader;
+import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.Selector;
+import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
-
-import com.googlecode.jcsv.writer.CSVWriter;
-import com.googlecode.jcsv.writer.internal.CSVWriterBuilder;
+import java.util.Queue;
+import java.util.Set;
 
 
 /**
@@ -36,17 +36,15 @@ import com.googlecode.jcsv.writer.internal.CSVWriterBuilder;
  */
 public class JijipingClient {
 
-  private static final int CHECKIN_COMMAND_ID = 0;
-  private static final int CHECKOUT_COMMAND_ID = 1;
+  /** チェックインコマンドのIDです。 */
+  public static final int CHECKIN_COMMAND_ID = 0;
+  /** チェックアウトコマンドのIDです。 */
+  public static final int CHECKOUT_COMMAND_ID = 1;
   private static final int SEND_QUESTION_COMMAND_ID = 2;
   private static final int SEND_ANSWER_COMMAND_ID = 3;
-  private static final String ENCODING = "UTF-8"; //$NON-NLS-1$
 
-  private Socket socket;
-  private Writer writer;
-  private BufferedReader reader;
   private String clientId;
-  private Receiver receiver;
+  private ClientThread clientThread;
 
   /**
    * {@link JijipingClient}オブジェクトを構築します。
@@ -58,31 +56,37 @@ public class JijipingClient {
    * @throws UnknownHostException 未知のホストの場合
    */
   public JijipingClient(String host, int port, Receiver receiver) throws UnknownHostException, IOException {
-    this.socket = new Socket(host, port);
-    this.writer = new BufferedWriter(new OutputStreamWriter(this.socket.getOutputStream(), ENCODING));
-    this.reader = new BufferedReader(new InputStreamReader(this.socket.getInputStream(), ENCODING));
-    this.receiver = receiver;
+    this.clientThread = new ClientThread(host, port, receiver);
+    this.clientThread.start();
   }
 
   /**
    * チェックインします。
    * 
    * @param clientId ID
-   * @throws IOException 通信に失敗した場合
-   * @throws IdAlreadyUsedException IDがすでに利用されている場合
    */
-  public void checkin(@SuppressWarnings("hiding") String clientId) throws IOException, IdAlreadyUsedException {
-    writeCommand(CHECKIN_COMMAND_ID, clientId);
-    this.clientId = clientId;
+  public void checkin(@SuppressWarnings("hiding") String clientId) {
+    synchronized (this) {
+      if (this.clientId != null) {
+        throw new IllegalStateException("Already checked in."); //$NON-NLS-1$
+      }
+      writeCommand(CHECKIN_COMMAND_ID, clientId);
+      this.clientId = clientId;
+    }
   }
 
   /**
    * チェックアウトします。
-   * 
-   * @throws IOException 通信に失敗した場合
    */
-  public void checkout() throws IOException {
-    writeCommand(CHECKOUT_COMMAND_ID, this.clientId);
+  public void checkout() {
+    synchronized (this) {
+      if (this.clientId == null) {
+        throw new IllegalStateException("Not checked in."); //$NON-NLS-1$
+      }
+      this.clientThread.requestStop();
+      this.clientThread = null;
+      writeCommand(CHECKOUT_COMMAND_ID, this.clientId);
+    }
   }
 
   /**
@@ -90,42 +94,125 @@ public class JijipingClient {
    * 
    * @param question 質問
    * @param answers 回答選択肢
-   * @throws IOException 通信中に問題が発生した場合
    */
-  public void sendQuestion(String question, Answers answers) throws IOException {
+  public void sendQuestion(String question, Answers answers) {
     final List<String> params = new ArrayList<String>();
     params.add(question);
     for (String answer : answers) {
       params.add(answer);
     }
 
-    writeCommand(SEND_QUESTION_COMMAND_ID, this.clientId, toCsv(params));
+    writeCommand(SEND_QUESTION_COMMAND_ID, this.clientId, Util.listToCsv(params));
   }
 
   /**
    * 質問を送信します。
    * 
    * @param answerIndex 回答選択肢のインデックス
-   * @throws IOException 通信中に問題が発生した場合
    */
-  public void sendAnswer(int answerIndex) throws IOException {
+  public void sendAnswer(int answerIndex) {
     writeCommand(SEND_ANSWER_COMMAND_ID, this.clientId, String.valueOf(answerIndex));
   }
 
-  private static String toCsv(final List<String> params) throws IOException {
-    final StringWriter sw = new StringWriter();
-    final CSVWriter<String[]> csvWriter = CSVWriterBuilder.newDefaultWriter(sw);
-    csvWriter.write(params.toArray(new String[0]));
-    final String csv = sw.toString();
-    return csv;
-  }
-
-  private void writeCommand(int commandId, @SuppressWarnings("hiding") String clientId) throws IOException {
+  private void writeCommand(int commandId, @SuppressWarnings("hiding") String clientId) {
     writeCommand(commandId, clientId, ""); //$NON-NLS-1$
   }
 
-  private void writeCommand(int commandId, @SuppressWarnings("hiding") String clientId, String data) throws IOException {
-    this.writer.write(String.format("%d:%s:%s", Integer.valueOf(commandId), clientId, data)); //$NON-NLS-1$
+  private void writeCommand(int commandId, @SuppressWarnings("hiding") String clientId, String data) {
+    final String message = String.format("%d:%s:%s", Integer.valueOf(commandId), clientId, data); //$NON-NLS-1$
+    this.clientThread.putMessage(message);
+  }
+
+  static class ClientThread extends Thread {
+
+    private SocketChannel channel;
+    private Queue<String> messageQueue = new LinkedList<String>();
+    private Receiver receiver;
+    private boolean stopRequested = false;
+
+    /**
+     * {@link JijipingClient}オブジェクトを構築します。
+     * 
+     * @param host ホストアドレス
+     * @param port ポート
+     * @param receiver メッセージ受信時の処理を定義するオブジェクト
+     * @throws IOException 通信できなかった場合
+     * @throws UnknownHostException 未知のホストの場合
+     */
+    public ClientThread(String host, int port, Receiver receiver) throws UnknownHostException, IOException {
+      this.channel = SocketChannel.open(new InetSocketAddress(host, port));
+      this.channel.configureBlocking(false);
+      this.receiver = receiver;
+    }
+
+    public void requestStop() {
+      synchronized (this.messageQueue) {
+        this.stopRequested = true;
+      }
+    }
+
+    public void putMessage(String message) {
+      synchronized (this.messageQueue) {
+        this.messageQueue.add(message);
+      }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void run() {
+      try {
+        Selector selector = Selector.open();
+        this.channel.register(selector, SelectionKey.OP_WRITE | SelectionKey.OP_READ);
+        while (selector.select() > 0) {
+          final Set<SelectionKey> keys = selector.selectedKeys();
+          for (Iterator<SelectionKey> it = keys.iterator(); it.hasNext();) {
+            final SelectionKey key = it.next();
+            it.remove();
+            if (key.isReadable()) {
+              final BufferedReader reader = new BufferedReader(new StringReader(Util.read(this.channel)));
+              String message;
+              while ((message = reader.readLine()) != null) {
+                final int delimiterIndex = message.indexOf(':');
+                final int commandId = Integer.parseInt(message.substring(0, delimiterIndex));
+                final String parameter = message.substring(delimiterIndex + 1);
+                switch (commandId) {
+                  case SEND_ANSWER_COMMAND_ID:
+                    final int answerIndex = Integer.parseInt(parameter);
+                    this.receiver.answerReceived(answerIndex);
+                    break;
+                  case SEND_QUESTION_COMMAND_ID:
+                    final List<String> qaData = Util.csvToList(parameter);
+                    final String question = qaData.get(0);
+                    final Answers answers = new Answers();
+                    for (int i = 1; i < qaData.size(); i++) {
+                      answers.add(qaData.get(i));
+                    }
+                    this.receiver.questionReceived(question, answers);
+                    break;
+                  default:
+                    throw new UnsupportedOperationException();
+                }
+              }
+            } else if (key.isWritable()) {
+              synchronized (this.messageQueue) {
+                while (this.messageQueue.size() > 0) {
+                  final String message = this.messageQueue.poll();
+                  Util.write(this.channel, message);
+                }
+                if (this.stopRequested) {
+                  this.channel.close();
+                  return;
+                }
+              }
+            }
+          }
+        }
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    }
   }
 
   /**
