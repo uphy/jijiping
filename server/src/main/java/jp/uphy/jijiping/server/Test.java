@@ -80,11 +80,7 @@ public class Test {
     @Override
     public void questionReceived(String question, Answers answer) {
       log("QuestionReceived: " + question + "," + answer);
-      try {
-        this.client.sendAnswer(1);
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
+      this.client.sendAnswer(1);
     }
 
     @Override

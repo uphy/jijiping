@@ -17,12 +17,8 @@ package jp.uphy.jijiping;
 
 import jp.uphy.jijiping.common.Answers;
 
-import roboguice.activity.RoboActivity;
 import android.app.Activity;
-import android.app.Service;
-import android.content.Intent;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -35,6 +31,8 @@ import android.widget.TextView;
  */
 public class AgedFamilyActivity extends Activity {
 
+  public static final String INTENT_QUESTION = "question"; //$NON-NLS-1$
+  public static final String INTENT_ANSWERS = "answers"; //$NON-NLS-1$
   private Communicator communicator;
 
   /**
@@ -45,12 +43,9 @@ public class AgedFamilyActivity extends Activity {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.younger);
 
-//    final String question = getIntent().getStringExtra(INTENT_QUESTION);
-//    final Answers answers = (Answers)getIntent().getSerializableExtra(INTENT_ANSWERS);
+    final String question = getIntent().getStringExtra(INTENT_QUESTION);
+    final Answers answers = (Answers)getIntent().getSerializableExtra(INTENT_ANSWERS);
 
-  final String question = "";
-  final Answers answers = new Answers();
-    
     if (question == null || answers == null) {
       finish();
       return;
@@ -68,7 +63,7 @@ public class AgedFamilyActivity extends Activity {
 
     setContentView(layout);
   }
-  
+
   private void createAnswerViews(final Answers answers, final LinearLayout layout) {
     int i = 0;
     for (final String answer : answers) {

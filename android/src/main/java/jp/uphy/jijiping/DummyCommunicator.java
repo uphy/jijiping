@@ -78,7 +78,7 @@ class DummyCommunicator implements Communicator {
   @SuppressWarnings("boxing")
   @Override
   public void sendAnswer(int answerIndex) {
-    new AlertDialog.Builder(this.context).setMessage(String.format("send answer : %d", answerIndex)).create().show(); //$NON-NLS-1$
+    new AlertDialog.Builder(this.context).setMessage(String.format("SEND answer : %d", answerIndex)).create().show(); //$NON-NLS-1$
   }
 
 }

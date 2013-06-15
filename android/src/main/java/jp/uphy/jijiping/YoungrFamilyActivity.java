@@ -23,9 +23,14 @@ import java.util.List;
 
 import roboguice.activity.RoboActivity;
 import roboguice.inject.InjectView;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
@@ -62,19 +67,10 @@ public class YoungrFamilyActivity extends RoboActivity {
   private Button saveCustomAnswersButton;
   private List<EditText> customAnswerTexts = new ArrayList<EditText>();
 
-  private Communicator communicator;
-  
-  public static final String CHECKIN_ID = "checkinId"; //$NON-NLS-2$
+  /** チェックイン対象の部屋のIDのインテントパラメータです。 */
+  public static final String CHECKIN_ID = "checkinId"; //$NON-NLS-1$
   /** ユーザ状態のインテントパラメータ名 */
-  public static final String STATE = "state"; //$NON-NLS-3$
-  
-  /**
-   * {@link YoungrFamilyActivity}オブジェクトを構築します。
-   */
-  public YoungrFamilyActivity(Communicator communicator) {
-    super();
-    this.communicator = new DummyCommunicator(this);
-  }
+  public static final String STATE = "state"; //$NON-NLS-1$
 
   /**
    * {@inheritDoc}
@@ -163,7 +159,8 @@ public class YoungrFamilyActivity extends RoboActivity {
         answers.add(answer.getText().toString());
       }
     }
-    this.communicator.sendQuestion(question, answers);
+    final SendQuestionServiceConnection connection = new SendQuestionServiceConnection(question, answers);
+    bindService(new Intent(this, JijipingService.class), connection, Context.BIND_AUTO_CREATE);
   }
 
   void saveCustomAnswers() {
@@ -178,5 +175,33 @@ public class YoungrFamilyActivity extends RoboActivity {
   private boolean isYesNoSelected() {
     return this.questionTypeSpinner.getSelectedItemPosition() == 0;
   }
+
+  class SendQuestionServiceConnection implements ServiceConnection {
+
+    private String question;
+    private Answers answers;
+
+    SendQuestionServiceConnection(String question, Answers answers) {
+      this.question = question;
+      this.answers = answers;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void onServiceConnected(ComponentName className, IBinder service) {
+      final JijipingService jijipingService = ((JijipingService.JijipingLocalBinder)service).getService();
+      jijipingService.sendQuestion(this.question, this.answers);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void onServiceDisconnected(ComponentName className) {
+      // do nothing
+    }
+  };
 
 }

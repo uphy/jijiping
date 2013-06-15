@@ -182,4 +182,9 @@ public class JijipingServer {
     }
   }
 
+  public static void main(String[] args) throws IOException {
+    final JijipingServer server = new JijipingServer();
+    server.start(12345);
+  }
+
 }

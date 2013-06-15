@@ -23,21 +23,23 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
-import jp.uphy.jijiping.CommunicatorImpl;
+import android.widget.Toast;
+
 
 /**
  * @author Yuhi Ishikura
  */
 public class CheckInActivity extends RoboActivity {
+
   @InjectView(R.id.aged)
   private Button agedButton;
   @InjectView(R.id.young)
   private Button youngButton;
   @InjectView(R.id.checkinId)
   private EditText checkinText;
-  
+
   private String id;
-  
+
   /**
    * {@inheritDoc}
    */
@@ -45,33 +47,41 @@ public class CheckInActivity extends RoboActivity {
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.checkin);
-    
+
     this.agedButton.setOnClickListener(new OnClickListener() {
+
       @Override
       public void onClick(@SuppressWarnings("unused") View v) {
         startAgedPeople();
       }
     });
-    
+
     this.youngButton.setOnClickListener(new OnClickListener() {
+
       @Override
       public void onClick(@SuppressWarnings("unused") View v) {
         startYoungPeople();
       }
     });
   }
-  
-  void startYoungPeople(){
-    final Intent intent = new Intent(this, YoungrFamilyActivity.class);
-    intent.putExtra(IntentParamerter.checkinId.getName(), id);
-    intent.putExtra(IntentParamerter.state.getName(), YougerState.send);
-    this.startService(intent);
+
+  void startYoungPeople() {
+    startService();
+
+    final Intent activityIntent = new Intent(this, YoungrFamilyActivity.class);
+    startActivity(activityIntent);
   }
-  
-  void startAgedPeople(){
-    final Intent intent = new Intent(this, AgedFamillyService.class);
-    intent.putExtra(IntentParamerter.checkinId.getName(), id);
-    intent.putExtra(IntentParamerter.state.getName(), AgedState.wait);
-    this.startService(intent);
+
+  void startAgedPeople() {
+    startService();
+    finish();
   }
+
+  private void startService() {
+    final Intent serviceIntent = new Intent(this, JijipingService.class);
+    serviceIntent.putExtra(JijipingService.INTENT_CHECKID, this.id);
+    startService(serviceIntent);
+    Toast.makeText(this, "Jijiping service is started.", Toast.LENGTH_SHORT).show();
+  }
+
 }
