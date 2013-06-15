@@ -34,7 +34,6 @@ public class JijipingService extends RoboService implements JijipingClient.Recei
 
   public static final String INTENT_CHECKID = "checkid"; //$NON-NLS-1$
 
-  private String checkinId;
   private IBinder binder = new JijipingLocalBinder();
   private JijipingClient client;
   @Inject
@@ -60,7 +59,13 @@ public class JijipingService extends RoboService implements JijipingClient.Recei
       stopSelf();
       return;
     }
-    this.checkinId = intent.getStringExtra(INTENT_CHECKID);
+    final String checkinId = intent.getStringExtra(INTENT_CHECKID);
+    if (checkinId == null) {
+      stopSelf();
+      return;
+    }
+
+    this.client.checkin(checkinId);
   }
 
   /**

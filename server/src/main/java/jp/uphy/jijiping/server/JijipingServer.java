@@ -122,6 +122,7 @@ public class JijipingServer {
             }
           }
         } catch (Throwable e) {
+          key.channel().close();
           logger.severe(exceptionToString(e));
         }
       }

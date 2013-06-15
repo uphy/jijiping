@@ -38,8 +38,6 @@ public class CheckInActivity extends RoboActivity {
   @InjectView(R.id.checkinId)
   private EditText checkinText;
 
-  private String id;
-
   /**
    * {@inheritDoc}
    */
@@ -63,6 +61,8 @@ public class CheckInActivity extends RoboActivity {
         startYoungPeople();
       }
     });
+
+    this.checkinText.setText("sample");
   }
 
   void startYoungPeople() {
@@ -78,8 +78,9 @@ public class CheckInActivity extends RoboActivity {
   }
 
   private void startService() {
+    final String id = this.checkinText.getText().toString();
     final Intent serviceIntent = new Intent(this, JijipingService.class);
-    serviceIntent.putExtra(JijipingService.INTENT_CHECKID, this.id);
+    serviceIntent.putExtra(JijipingService.INTENT_CHECKID, id);
     startService(serviceIntent);
     Toast.makeText(this, "Jijiping service is started.", Toast.LENGTH_SHORT).show();
   }
