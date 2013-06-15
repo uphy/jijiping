@@ -44,17 +44,17 @@ public class QuestionerActivity extends RoboActivity {
   @Inject
   private ErrorNotifier errorNotifier;
   @InjectView(R.id.question)
-  private EditText question;
+  private EditText questionText;
   @InjectView(R.id.questionType)
-  private Spinner questionType;
+  private Spinner questionTypeSpinner;
   @InjectView(R.id.sendQuestion)
-  private Button send;
+  private Button sendButton;
   @InjectView(R.id.customAnswersPane)
   private LinearLayout customAnswersPane;
   @InjectView(R.id.customAnswers)
   private LinearLayout customAnswers;
   @InjectView(R.id.addAnswer)
-  private Button addCustomAnswer;
+  private Button addCustomAnswerButton;
   private List<EditText> customAnswerTexts = new ArrayList<EditText>();
 
   private Communicator communicator;
@@ -74,23 +74,28 @@ public class QuestionerActivity extends RoboActivity {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.questioner);
 
-    final ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, new String[] {"Yes/No", "Custom"});
-    adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-    this.questionType.setAdapter(adapter);
-    this.questionType.setSelection(0);
+    final List<String> questionTypes = new ArrayList<String>();
+    questionTypes.add(getString(R.string.yes_no));
+    questionTypes.add(getString(R.string.custom));
 
-    this.send.setOnClickListener(new OnClickListener() {
+    final ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, questionTypes);
+    adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+    this.questionTypeSpinner.setAdapter(adapter);
+    this.questionTypeSpinner.setSelection(0);
+
+    this.sendButton.setOnClickListener(new OnClickListener() {
 
       @Override
-      public void onClick(View v) {
+      public void onClick(@SuppressWarnings("unused") View v) {
         send();
       }
     });
-    this.questionType.setOnItemSelectedListener(new OnItemSelectedListener() {
+    this.questionTypeSpinner.setOnItemSelectedListener(new OnItemSelectedListener() {
 
       /**
        * {@inheritDoc}
        */
+      @SuppressWarnings("unused")
       @Override
       public void onItemSelected(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
         updateViewByQuestionTypeSelection();
@@ -100,14 +105,14 @@ public class QuestionerActivity extends RoboActivity {
        * {@inheritDoc}
        */
       @Override
-      public void onNothingSelected(AdapterView<?> arg0) {
+      public void onNothingSelected(@SuppressWarnings("unused") AdapterView<?> arg0) {
         updateViewByQuestionTypeSelection();
       }
     });
-    this.addCustomAnswer.setOnClickListener(new OnClickListener() {
+    this.addCustomAnswerButton.setOnClickListener(new OnClickListener() {
 
       @Override
-      public void onClick(View v) {
+      public void onClick(@SuppressWarnings("unused") View v) {
         addNewAnswerEditField();
       }
     });
@@ -131,11 +136,11 @@ public class QuestionerActivity extends RoboActivity {
   }
 
   void send() {
-    final String question = this.question.getText().toString();
+    final String question = this.questionText.getText().toString();
     final Answers answers = new Answers();
     if (isYesNoSelected()) {
-      answers.add("はい");
-      answers.add("いいえ");
+      answers.add(getString(R.string.yes));
+      answers.add(getString(R.string.no));
     } else if (isCustomSelected()) {
       for (EditText answer : this.customAnswerTexts) {
         answers.add(answer.getText().toString());
@@ -149,7 +154,7 @@ public class QuestionerActivity extends RoboActivity {
   }
 
   private boolean isYesNoSelected() {
-    return this.questionType.getSelectedItemPosition() == 0;
+    return this.questionTypeSpinner.getSelectedItemPosition() == 0;
   }
 
 }

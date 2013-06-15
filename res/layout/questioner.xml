@@ -13,7 +13,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="0.5"
-            android:text="質問"
+            android:text="@string/question"
             android:textAppearance="?android:attr/textAppearanceSmall" />
 
         <EditText
@@ -47,13 +47,13 @@
             android:id="@+id/addAnswer"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:text="Add Answer" />
+            android:text="@string/add_answer" />
     </LinearLayout>
 
     <Button
         android:id="@+id/sendQuestion"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:text="Send" />
+        android:text="@string/send" />
 
 </LinearLayout>

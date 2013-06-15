@@ -22,22 +22,42 @@ import java.util.List;
 
 
 /**
+ * 回答選択肢を表すクラスです。
+ * 
  * @author Yuhi Ishikura
  */
 public class Answers implements Serializable, Iterable<String> {
 
-  private List<String> questions = new ArrayList<String>();
+  /** for serialization. */
+  private static final long serialVersionUID = -8655317689995285013L;
+  private List<String> answers = new ArrayList<String>();
 
-  public void add(String question) {
-    this.questions.add(question);
+  /**
+   * 回答選択肢を追加します。
+   * 
+   * @param answer 回答選択肢
+   */
+  public void add(String answer) {
+    this.answers.add(answer);
   }
 
+  /**
+   * 回答選択肢の数を取得します。
+   * 
+   * @return 回答選択肢の数
+   */
   public int size() {
-    return this.questions.size();
+    return this.answers.size();
   }
 
+  /**
+   * 回答を取得します。
+   * 
+   * @param i 回答選択肢のインデックス
+   * @return 回答選択肢
+   */
   public String getAnswer(int i) {
-    return this.questions.get(i);
+    return this.answers.get(i);
   }
 
   /**
@@ -45,7 +65,7 @@ public class Answers implements Serializable, Iterable<String> {
    */
   @Override
   public Iterator<String> iterator() {
-    return this.questions.iterator();
+    return this.answers.iterator();
   }
 
 }

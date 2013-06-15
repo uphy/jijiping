@@ -1,6 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">Test Application</string>
+    <string name="app_name">じじぴん</string>
+
+    <string name="yes_no">はい / いいえ</string>
+
+    <string name="custom">カスタム</string>
+
+    <string name="yes">はい</string>
+
+    <string name="no">いいえ</string>
+
+    <string name="question">質問</string>
+
+    <string name="add_answer">回答追加</string>
+
+    <string name="send">送信</string>
 
 </resources>
