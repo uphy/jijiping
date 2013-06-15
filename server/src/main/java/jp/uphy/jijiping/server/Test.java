@@ -28,7 +28,9 @@ import java.io.IOException;
 public class Test {
 
   public static void main(String[] args) throws IOException {
-    final int port = 10023;
+    final int port = 12542;
+    //final String host = "192.168.0.10";
+    final String host = "localhost";
     new Thread() {
 
       public void run() {
@@ -45,20 +47,28 @@ public class Test {
     } catch (InterruptedException e1) {
       throw new RuntimeException(e1);
     }
-    final JijipingClient client1 = createClient("localhost", port, "client1");
-    final JijipingClient client2 = createClient("localhost", port, "client2");
+    final JijipingClient client1 = createClient(host, port, "client1");
+    final JijipingClient client2 = createClient(host, port, "client2");
     client1.checkin("aaa");
     client2.checkin("aaa");
+    
+    try {
+      Thread.sleep(3000);
+    } catch (InterruptedException e) {
+      // TODO Auto-generated catch block
+      throw new RuntimeException(e);
+    }
 
     final Answers answers = new Answers();
     answers.add("Yes");
     answers.add("No");
     client1.sendQuestion("How do you do?", answers);
+    System.out.println("Test.enclosing_method()");
   }
 
   private static JijipingClient createClient(String host, int port, String name) throws IOException {
     TestReceiver receiver = new TestReceiver(name);
-    final JijipingClient client = new JijipingClient("localhost", port, receiver);
+    final JijipingClient client = new JijipingClient(host, port, receiver);
     receiver.setClient(client);
     return client;
   }
