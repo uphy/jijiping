@@ -67,6 +67,8 @@ public class YoungrFamilyActivity extends RoboActivity {
   private Button saveCustomAnswersButton;
   private List<EditText> customAnswerTexts = new ArrayList<EditText>();
 
+  private List<SendQuestionServiceConnection> connections = new ArrayList<YoungrFamilyActivity.SendQuestionServiceConnection>();
+
   /** チェックイン対象の部屋のIDのインテントパラメータです。 */
   public static final String CHECKIN_ID = "checkinId"; //$NON-NLS-1$
   /** ユーザ状態のインテントパラメータ名 */
@@ -160,8 +162,28 @@ public class YoungrFamilyActivity extends RoboActivity {
       }
     }
     final SendQuestionServiceConnection connection = new SendQuestionServiceConnection(question, answers);
+    this.connections.add(connection);
     bindService(new Intent(this, JijipingService.class), connection, Context.BIND_AUTO_CREATE);
-    //finish();
+
+    //    try {
+    //      Thread.sleep(10 * 1000);
+    //    } catch (InterruptedException e) {
+    //      throw new RuntimeException(e);
+    //    }
+    //    unbindService(connection);
+    //    finish();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  protected void onDestroy() {
+    super.onDestroy();
+    for (SendQuestionServiceConnection con : this.connections) {
+      unbindService(con);
+    }
+    this.connections.clear();
   }
 
   void saveCustomAnswers() {
@@ -201,7 +223,7 @@ public class YoungrFamilyActivity extends RoboActivity {
      */
     @Override
     public void onServiceDisconnected(ComponentName className) {
-      // do nothing
+      unbindService(this);
     }
   };
 

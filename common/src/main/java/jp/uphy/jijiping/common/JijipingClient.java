@@ -23,10 +23,10 @@ import java.net.UnknownHostException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import java.util.logging.ConsoleHandler;
@@ -49,6 +49,7 @@ public class JijipingClient {
 
   private String clientId;
   private ClientThread clientThread;
+  private Map<String, Question> questionMap = new HashMap<String, Question>();
 
   static {
     logger.setLevel(Level.ALL);
@@ -107,22 +108,20 @@ public class JijipingClient {
    * @param answers 回答選択肢
    */
   public void sendQuestion(String question, Answers answers) {
-    final List<String> params = new ArrayList<String>();
-    params.add(question);
-    for (String answer : answers) {
-      params.add(answer);
-    }
-
-    writeCommand(SEND_QUESTION_COMMAND_ID, this.clientId, Util.listToCsv(params));
+    final String questionId = String.valueOf((long)(Math.random() * 100000000000000000L));
+    final Question q = new Question(questionId, question, answers);
+    this.questionMap.put(questionId, q);
+    writeCommand(SEND_QUESTION_COMMAND_ID, this.clientId, q.toCsv());
   }
 
   /**
    * 質問を送信します。
    * 
+   * @param question 質問
    * @param answerIndex 回答選択肢のインデックス
    */
-  public void sendAnswer(int answerIndex) {
-    writeCommand(SEND_ANSWER_COMMAND_ID, this.clientId, String.valueOf(answerIndex));
+  public void sendAnswer(Question question, int answerIndex) {
+    writeCommand(SEND_ANSWER_COMMAND_ID, this.clientId, question.getId() + "," + answerIndex); //$NON-NLS-1$
   }
 
   private void writeCommand(int commandId, @SuppressWarnings("hiding") String clientId) {
@@ -135,7 +134,7 @@ public class JijipingClient {
     this.clientThread.putMessage(message);
   }
 
-  static class ClientThread extends Thread {
+  class ClientThread extends Thread {
 
     private SocketChannel channel;
     private Queue<String> messageQueue = new LinkedList<String>();
@@ -167,7 +166,7 @@ public class JijipingClient {
     public void putMessage(String message) {
       synchronized (this.messageQueue) {
         this.messageQueue.add(message);
-//        this.key.interestOps(this.key.interestOps() | SelectionKey.OP_WRITE);
+        //        this.key.interestOps(this.key.interestOps() | SelectionKey.OP_WRITE);
       }
     }
 
@@ -195,17 +194,14 @@ public class JijipingClient {
                 final String parameter = message.substring(delimiterIndex + 1);
                 switch (commandId) {
                   case SEND_ANSWER_COMMAND_ID:
-                    final int answerIndex = Integer.parseInt(parameter);
-                    this.receiver.answerReceived(answerIndex);
+                    final String[] idAnswerIndex = parameter.split(","); //$NON-NLS-1$
+                    final String questionId = idAnswerIndex[0];
+                    final int answerIndex = Integer.parseInt(idAnswerIndex[1]);
+                    final Question question = questionMap.get(questionId);
+                    this.receiver.answerReceived(question, answerIndex);
                     break;
                   case SEND_QUESTION_COMMAND_ID:
-                    final List<String> qaData = Util.csvToList(parameter);
-                    final String question = qaData.get(0);
-                    final Answers answers = new Answers();
-                    for (int i = 1; i < qaData.size(); i++) {
-                      answers.add(qaData.get(i));
-                    }
-                    this.receiver.questionReceived(question, answers);
+                    this.receiver.questionReceived(Question.fromCsv(parameter));
                     break;
                   default:
                     throw new UnsupportedOperationException();
@@ -213,15 +209,20 @@ public class JijipingClient {
               }
             }
             if (key.isWritable()) {
+              try {
+                Thread.sleep(300);
+              } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+              }
               synchronized (this.messageQueue) {
                 while (this.messageQueue.size() > 0) {
                   final String message = this.messageQueue.poll();
                   logger.fine("Writing => " + message); //$NON-NLS-1$
                   Util.write(this.channel, message);
                 }
-//                if (this.messageQueue.isEmpty()) {
-//                  this.key.interestOps(this.key.interestOps() & (~SelectionKey.OP_WRITE));
-//                }
+                //                if (this.messageQueue.isEmpty()) {
+                //                  this.key.interestOps(this.key.interestOps() & (~SelectionKey.OP_WRITE));
+                //                }
                 if (this.stopRequested) {
                   this.channel.close();
                   return;
@@ -246,16 +247,16 @@ public class JijipingClient {
     /**
      * 回答を受け取ったときに呼び出されます。
      * 
+     * @param question 質問
      * @param answerIndex 回答選択肢のインデックス
      */
-    void answerReceived(int answerIndex);
+    void answerReceived(Question question, int answerIndex);
 
     /**
      * 質問を受け取った時に呼び出されます。
      * 
      * @param question 質問
-     * @param answer 回答の選択肢
      */
-    void questionReceived(String question, Answers answer);
+    void questionReceived(Question question);
   }
 }

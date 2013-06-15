@@ -18,6 +18,7 @@ package jp.uphy.jijiping;
 import jp.uphy.jijiping.app.ErrorNotifier;
 import jp.uphy.jijiping.common.Answers;
 import jp.uphy.jijiping.common.JijipingClient;
+import jp.uphy.jijiping.common.Question;
 
 import roboguice.service.RoboService;
 import android.content.Intent;
@@ -53,10 +54,15 @@ public class JijipingService extends RoboService implements JijipingClient.Recei
   public void onStart(Intent intent, int startId) {
     super.onStart(intent, startId);
     try {
-      this.client = new JijipingClient("192.168.0.10", 12542, this);
-      //this.client = new JijipingClient("uphy-home.ddo.jp", 12542, this);
+      //this.client = new JijipingClient("192.168.0.10", 12542, this);
+      this.client = new JijipingClient("uphy-home.ddo.jp", 12542, this);
     } catch (Throwable e) {
       this.errorNotifier.notifyError(e, "Failed to start client.");
+      stopSelf();
+      return;
+    }
+    if (intent == null) {
+      this.errorNotifier.notifyError("intent == null");
       stopSelf();
       return;
     }
@@ -81,17 +87,19 @@ public class JijipingService extends RoboService implements JijipingClient.Recei
     this.client.sendQuestion(question, answers);
   }
 
-  public void sendAnswer(int answerIndex) {
-    this.client.sendAnswer(answerIndex);
+  public void sendAnswer(Question question, int answerIndex) {
+    this.client.sendAnswer(question, answerIndex);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public void answerReceived(int answerIndex) {
-    final Intent intent = new Intent(this, YoungrFamilyActivity.class);
+  public void answerReceived(Question question, int answerIndex) {
+    final Intent intent = new Intent(this, AnswerActivity.class);
     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+    intent.putExtra(AnswerActivity.INTENT_QUESTION, question);
+    intent.putExtra(AnswerActivity.INTENT_ANSWER, answerIndex);
     startActivity(intent);
   }
 
@@ -99,9 +107,8 @@ public class JijipingService extends RoboService implements JijipingClient.Recei
    * {@inheritDoc}
    */
   @Override
-  public void questionReceived(String question, Answers answer) {
+  public void questionReceived(Question question) {
     final Intent intent = new Intent(this, AgedFamilyActivity.class);
-    intent.putExtra(AgedFamilyActivity.INTENT_ANSWERS, answer);
     intent.putExtra(AgedFamilyActivity.INTENT_QUESTION, question);
     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
     startActivity(intent);

@@ -16,6 +16,10 @@
 package jp.uphy.jijiping;
 
 import jp.uphy.jijiping.common.Answers;
+import jp.uphy.jijiping.common.Question;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import android.app.Activity;
 import android.content.ComponentName;
@@ -37,7 +41,8 @@ import android.widget.TextView;
 public class AgedFamilyActivity extends Activity {
 
   public static final String INTENT_QUESTION = "question"; //$NON-NLS-1$
-  public static final String INTENT_ANSWERS = "answers"; //$NON-NLS-1$
+  private Question question;
+  private List<SendAnswerServiceConnection> connections = new ArrayList<SendAnswerServiceConnection>();
 
   /**
    * {@inheritDoc}
@@ -47,10 +52,9 @@ public class AgedFamilyActivity extends Activity {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.younger);
 
-    final String question = getIntent().getStringExtra(INTENT_QUESTION);
-    final Answers answers = (Answers)getIntent().getSerializableExtra(INTENT_ANSWERS);
+    this.question = (Question)getIntent().getSerializableExtra(INTENT_QUESTION);
 
-    if (question == null || answers == null) {
+    if (this.question == null) {
       finish();
       return;
     }
@@ -60,10 +64,10 @@ public class AgedFamilyActivity extends Activity {
 
     // question
     final TextView questionView = new TextView(this);
-    questionView.setText(question);
+    questionView.setText(this.question.getQuestion());
     layout.addView(questionView);
     // answer
-    createAnswerViews(answers, layout);
+    createAnswerViews(this.question.getAnswers(), layout);
 
     setContentView(layout);
   }
@@ -89,8 +93,20 @@ public class AgedFamilyActivity extends Activity {
 
   void send(int i) {
     final SendAnswerServiceConnection connection = new SendAnswerServiceConnection(i);
+    this.connections.add(connection);
     bindService(new Intent(this, JijipingService.class), connection, Context.BIND_AUTO_CREATE);
-    finish();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  protected void onDestroy() {
+    super.onDestroy();
+    for (SendAnswerServiceConnection con : this.connections) {
+      unbindService(con);
+    }
+    this.connections.clear();
   }
 
   class SendAnswerServiceConnection implements ServiceConnection {
@@ -107,7 +123,7 @@ public class AgedFamilyActivity extends Activity {
     @Override
     public void onServiceConnected(ComponentName className, IBinder service) {
       final JijipingService jijipingService = ((JijipingService.JijipingLocalBinder)service).getService();
-      jijipingService.sendAnswer(this.answerIndex);
+      jijipingService.sendAnswer(question, this.answerIndex);
     }
 
     /**

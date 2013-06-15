@@ -18,6 +18,7 @@ package jp.uphy.jijiping.server;
 import jp.uphy.jijiping.common.Answers;
 import jp.uphy.jijiping.common.JijipingClient;
 import jp.uphy.jijiping.common.JijipingClient.Receiver;
+import jp.uphy.jijiping.common.Question;
 
 import java.io.IOException;
 
@@ -51,7 +52,7 @@ public class Test {
     final JijipingClient client2 = createClient(host, port, "client2");
     client1.checkin("aaa");
     client2.checkin("aaa");
-    
+
     try {
       Thread.sleep(3000);
     } catch (InterruptedException e) {
@@ -88,13 +89,13 @@ public class Test {
     }
 
     @Override
-    public void questionReceived(String question, Answers answer) {
-      log("QuestionReceived: " + question + "," + answer);
-      this.client.sendAnswer(1);
+    public void questionReceived(Question question) {
+      log("QuestionReceived: " + question);
+      this.client.sendAnswer(question, 1);
     }
 
     @Override
-    public void answerReceived(int answerIndex) {
+    public void answerReceived(Question question, int answerIndex) {
       log("AnswerReceived: " + answerIndex);
     }
 

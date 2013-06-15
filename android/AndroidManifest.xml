@@ -24,6 +24,7 @@
         </activity>
         <activity android:name="jp.uphy.jijiping.YoungrFamilyActivity" />
         <activity android:name="jp.uphy.jijiping.AgedFamilyActivity" />
+        <activity android:name="jp.uphy.jijiping.AnswerActivity" />
         <activity
             android:name="jp.uphy.jijiping.app.ErrorDialogActivity"
             android:theme="@android:style/Theme.Dialog" />

@@ -23,6 +23,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.InetSocketAddress;
 import java.nio.channels.CancelledKeyException;
+import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
@@ -174,7 +175,7 @@ public class JijipingServer {
     synchronized (this.clientIdToContext) {
       for (String clientId : this.clientIdToContext.keySet()) {
         for (ClientContext c : this.clientIdToContext.get(clientId)) {
-          if (host.equals(c.getHost())) {
+          if (host.equals(c.getHost()) || c.isClosed()) {
             checkoutWithoutLock(clientId, c);
           }
         }
@@ -221,23 +222,27 @@ public class JijipingServer {
       this.key = clientKey;
     }
 
-    public String getHost() {
+    /**
+     * @return
+     */
+    public boolean isClosed() {
       try {
-        final InetSocketAddress addr = (InetSocketAddress)(((SocketChannel)key.channel()).getRemoteAddress());
-        return addr.getHostName();
-      } catch (IOException ex) {
-        return null;
+        final SelectableChannel channel = this.key.channel();
+        if (channel.isOpen() == false) {
+          return true;
+        }
+        return false;
+      } catch (Throwable e) {
+        return true;
       }
     }
 
-    /**
-     * keyを設定します。
-     * 
-     * @param key key
-     */
-    public void setKey(SelectionKey key) {
-      synchronized (this.writeQueue) {
-        this.key = key;
+    public String getHost() {
+      try {
+        final InetSocketAddress addr = (InetSocketAddress)(((SocketChannel)this.key.channel()).getRemoteAddress());
+        return addr.getHostName();
+      } catch (IOException ex) {
+        return null;
       }
     }
 

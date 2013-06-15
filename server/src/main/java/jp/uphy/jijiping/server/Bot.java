@@ -15,8 +15,8 @@
  */
 package jp.uphy.jijiping.server;
 
-import jp.uphy.jijiping.common.Answers;
 import jp.uphy.jijiping.common.JijipingClient;
+import jp.uphy.jijiping.common.Question;
 
 import java.io.IOException;
 import java.net.UnknownHostException;
@@ -39,13 +39,13 @@ public class Bot {
     this.client = new JijipingClient("192.168.0.10", 12542, new JijipingClient.Receiver() {
 
       @Override
-      public void answerReceived(int answerIndex) {
+      public void answerReceived(Question question, int answerIndex) {
         System.out.println("AnswerReceived: " + answerIndex);
       }
 
       @Override
-      public void questionReceived(String question, Answers answer) {
-        client.sendAnswer(0);
+      public void questionReceived(Question question) {
+        client.sendAnswer(question, 0);
       }
     });
     this.client.checkin("sample");
