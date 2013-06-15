@@ -15,6 +15,8 @@
  */
 package jp.uphy.jijiping;
 
+import jp.uphy.jijiping.common.Answers;
+
 import roboguice.activity.RoboActivity;
 import android.os.Bundle;
 import android.view.View;

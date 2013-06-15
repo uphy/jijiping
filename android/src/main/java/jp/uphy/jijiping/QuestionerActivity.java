@@ -16,6 +16,7 @@
 package jp.uphy.jijiping;
 
 import jp.uphy.jijiping.app.ErrorNotifier;
+import jp.uphy.jijiping.common.Answers;
 
 import java.util.ArrayList;
 import java.util.List;

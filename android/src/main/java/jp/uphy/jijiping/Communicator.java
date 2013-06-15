@@ -15,6 +15,8 @@
  */
 package jp.uphy.jijiping;
 
+import jp.uphy.jijiping.common.Answers;
+
 /**
  * 質問・回答をやり取りするためのインターフェースです。
  * 
