@@ -16,7 +16,6 @@
 package jp.uphy.jijiping.common;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
@@ -36,8 +35,10 @@ import com.googlecode.jcsv.writer.internal.CSVWriterBuilder;
  */
 public class JijipingClient {
 
-  private static final int CHECKIN_COMMAND_ID = 0;
-  private static final int CHECKOUT_COMMAND_ID = 1;
+  /** チェックインコマンドのIDです。 */
+  public static final int CHECKIN_COMMAND_ID = 0;
+  /** チェックアウトコマンドのIDです。 */
+  public static final int CHECKOUT_COMMAND_ID = 1;
   private static final int SEND_QUESTION_COMMAND_ID = 2;
   private static final int SEND_ANSWER_COMMAND_ID = 3;
   private static final String ENCODING = "UTF-8"; //$NON-NLS-1$
@@ -47,6 +48,7 @@ public class JijipingClient {
   private BufferedReader reader;
   private String clientId;
   private Receiver receiver;
+  private Thread readerThread;
 
   /**
    * {@link JijipingClient}オブジェクトを構築します。
@@ -59,8 +61,9 @@ public class JijipingClient {
    */
   public JijipingClient(String host, int port, Receiver receiver) throws UnknownHostException, IOException {
     this.socket = new Socket(host, port);
-    this.writer = new BufferedWriter(new OutputStreamWriter(this.socket.getOutputStream(), ENCODING));
+    this.writer = new OutputStreamWriter(this.socket.getOutputStream(), ENCODING);
     this.reader = new BufferedReader(new InputStreamReader(this.socket.getInputStream(), ENCODING));
+
     this.receiver = receiver;
   }
 
@@ -72,6 +75,9 @@ public class JijipingClient {
    * @throws IdAlreadyUsedException IDがすでに利用されている場合
    */
   public void checkin(@SuppressWarnings("hiding") String clientId) throws IOException, IdAlreadyUsedException {
+    this.readerThread = new ReaderThread(this.reader);
+    this.readerThread.start();
+
     writeCommand(CHECKIN_COMMAND_ID, clientId);
     this.clientId = clientId;
   }
@@ -125,7 +131,33 @@ public class JijipingClient {
   }
 
   private void writeCommand(int commandId, @SuppressWarnings("hiding") String clientId, String data) throws IOException {
-    this.writer.write(String.format("%d:%s:%s", Integer.valueOf(commandId), clientId, data)); //$NON-NLS-1$
+    this.writer.write(String.format("%d:%s:%s\n", Integer.valueOf(commandId), clientId, data)); //$NON-NLS-1$
+    this.writer.flush();
+  }
+
+  static class ReaderThread extends Thread {
+
+    private BufferedReader reader;
+
+    ReaderThread(BufferedReader reader) {
+      super();
+      this.reader = reader;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void run() {
+      String line;
+      try {
+        while ((line = this.reader.readLine()) != null) {
+          System.out.println("client receiver: "+line);
+        }
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    }
   }
 
   /**
