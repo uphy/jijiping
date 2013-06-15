@@ -1,10 +1,3 @@
-package jp.uphy.jijiping;
-
-import android.app.AlertDialog;
-import android.content.Context;
-import android.content.Intent;
-
-
 /**
  * Copyright (C) 2013 uphy.jp
  *
@@ -20,18 +13,37 @@ import android.content.Intent;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package jp.uphy.jijiping;
+
 
 /**
- * @author Yuhi Ishikura
+ * @author ishikura
  */
-class DummyCommunicator implements Communicator {
+public class CommunicatorImpl implements Communicator {
+  /**
+   * ユーザID
+   */
+  private String userId;
+  /**
+   * コマンドID
+   */
+  private int commandId;
+
+  /**
+   * {@link CommunicatorImpl}オブジェクトを構築します。
+   * 
+   * @param userId
+   */
+  private CommunicatorImpl(String userId) {
+    super();
+    this.userId = userId;
+  }
 
   /**
    * {@inheritDoc}
    */
   @Override
   public void checkIn() {
-    // TODO Auto-generated method stub
     
   }
 
@@ -53,30 +65,22 @@ class DummyCommunicator implements Communicator {
     
   }
 
-  private Context context;
-
-  DummyCommunicator(Context context) {
-    this.context = context;
-  }
-
   /**
    * {@inheritDoc}
    */
   @Override
   public void sendQuestion(String question, Answers answers) {
-    final Intent intent = new Intent(this.context, AnswererActivity.class);
-    intent.putExtra(AnswererActivity.INTENT_QUESTION, question);
-    intent.putExtra(AnswererActivity.INTENT_ANSWERS, answers);
-    this.context.startActivity(intent);
+    // TODO Auto-generated method stub
+
   }
 
   /**
    * {@inheritDoc}
    */
-  @SuppressWarnings("boxing")
   @Override
   public void sendAnswer(int answerIndex) {
-    new AlertDialog.Builder(this.context).setMessage(String.format("send answer : %d", answerIndex)).create().show(); //$NON-NLS-1$
+    // TODO Auto-generated method stub
+
   }
 
 }

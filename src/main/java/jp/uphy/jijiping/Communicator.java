@@ -21,7 +21,17 @@ package jp.uphy.jijiping;
  * @author Yuhi Ishikura
  */
 public interface Communicator {
-
+  
+  /**
+   * 入室します
+   */
+  void checkIn();
+  
+  /**
+   * 退室します
+   */
+  void checkout();
+  
   /**
    * 質問を送信します。
    * 
@@ -36,4 +46,9 @@ public interface Communicator {
    * @param answerIndex 回答選択肢のインデックス
    */
   void sendAnswer(int answerIndex);
+  
+  /**
+   * 回答を待ちます。
+   */
+  void listen();
 }

@@ -22,6 +22,8 @@ import java.util.List;
 
 import roboguice.activity.RoboActivity;
 import roboguice.inject.InjectView;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -55,6 +57,8 @@ public class QuestionerActivity extends RoboActivity {
   private LinearLayout customAnswers;
   @InjectView(R.id.addAnswer)
   private Button addCustomAnswerButton;
+  @InjectView(R.id.saveAnswers)
+  private Button saveCustomAnswersButton;
   private List<EditText> customAnswerTexts = new ArrayList<EditText>();
 
   private Communicator communicator;
@@ -116,6 +120,13 @@ public class QuestionerActivity extends RoboActivity {
         addNewAnswerEditField();
       }
     });
+    this.saveCustomAnswersButton.setOnClickListener(new OnClickListener() {
+
+      @Override
+      public void onClick(@SuppressWarnings("unused") View v) {
+        saveCustomAnswers();
+      }
+    });
     updateViewByQuestionTypeSelection();
   }
 
@@ -147,6 +158,11 @@ public class QuestionerActivity extends RoboActivity {
       }
     }
     this.communicator.sendQuestion(question, answers);
+  }
+
+  void saveCustomAnswers() {
+    final SharedPreferences prefs = getPreferences(MODE_PRIVATE);
+    final Editor editor = prefs.edit();
   }
 
   private boolean isCustomSelected() {
