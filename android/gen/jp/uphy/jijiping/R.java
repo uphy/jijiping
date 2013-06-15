@@ -28,6 +28,7 @@ public final class R {
         public static final int error_divider=0x7f06000e;
         public static final int error_exception=0x7f06000f;
         public static final int error_message=0x7f06000d;
+        public static final int imageView1=0x7f060011;
         public static final int question=0x7f060000;
         public static final int questionType=0x7f060001;
         public static final int saveAnswers=0x7f060005;

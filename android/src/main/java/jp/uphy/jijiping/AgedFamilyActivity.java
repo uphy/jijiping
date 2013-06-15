@@ -53,7 +53,6 @@ public class AgedFamilyActivity extends Activity {
     setContentView(R.layout.younger);
 
     this.question = (Question)getIntent().getSerializableExtra(INTENT_QUESTION);
-
     if (this.question == null) {
       finish();
       return;
@@ -65,6 +64,7 @@ public class AgedFamilyActivity extends Activity {
     // question
     final TextView questionView = new TextView(this);
     questionView.setText(this.question.getQuestion());
+    questionView.setTextSize(30);
     layout.addView(questionView);
     // answer
     createAnswerViews(this.question.getAnswers(), layout);
