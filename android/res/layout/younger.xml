@@ -2,7 +2,8 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:orientation="vertical" >
+    android:orientation="vertical"
+    style="@style/Jijistyle" >
 
     <LinearLayout
         android:layout_width="fill_parent"
@@ -12,34 +13,40 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="0.5"
+            android:layout_weight="0.1"
             android:text="@string/question"
+            style="@style/Jijistyle"
             android:textAppearance="?android:attr/textAppearanceSmall" />
 
         <EditText
             android:id="@+id/question"
-            android:layout_width="fill_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            style="@style/Jijistyle"
             android:inputType="text" />
     </LinearLayout>
 
     <Spinner
         android:id="@+id/questionType"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content" 
+        style="@style/Jijistyle"
+        />
 
     <LinearLayout
         android:id="@+id/customAnswersPane"
         android:layout_width="wrap_content"
         android:layout_height="0dp"
         android:layout_weight="1"
+        style="@style/Jijistyle"
         android:orientation="vertical" >
 
         <LinearLayout
             android:id="@+id/customAnswers"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            style="@style/Jijistyle"
             android:orientation="vertical" >
         </LinearLayout>
 
@@ -52,13 +59,15 @@
                 android:id="@+id/addAnswer"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/add_answer" />
+                android:text="@string/add_answer"
+                style="@style/Jijistyle" />
 
             <Button
                 android:id="@+id/saveAnswers"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="回答を保存" />
+                android:text="回答を保存"
+                style="@style/Jijistyle" />
         </LinearLayout>
     </LinearLayout>
 
@@ -66,6 +75,7 @@
         android:id="@+id/sendQuestion"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:text="@string/send" />
+        android:text="@string/send"
+        style="@style/Jijistyle" />
 
 </LinearLayout>

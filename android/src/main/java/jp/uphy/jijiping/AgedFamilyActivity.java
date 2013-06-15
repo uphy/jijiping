@@ -73,6 +73,7 @@ public class AgedFamilyActivity extends Activity {
     for (final String answer : answers) {
       final Button answerView = new Button(this);
       answerView.setText(answer);
+      answerView.setTextSize(30);
       layout.addView(answerView);
 
       final int answerIndex = i++;
