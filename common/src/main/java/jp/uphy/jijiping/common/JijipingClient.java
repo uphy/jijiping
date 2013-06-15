@@ -77,10 +77,8 @@ public class JijipingClient {
 
   /**
    * チェックアウトします。
-   * 
-   * @throws IOException 通信に失敗した場合
    */
-  public void checkout() throws IOException {
+  public void checkout() {
     synchronized (this) {
       if (this.clientId == null) {
         throw new IllegalStateException("Not checked in."); //$NON-NLS-1$
@@ -96,9 +94,8 @@ public class JijipingClient {
    * 
    * @param question 質問
    * @param answers 回答選択肢
-   * @throws IOException 通信中に問題が発生した場合
    */
-  public void sendQuestion(String question, Answers answers) throws IOException {
+  public void sendQuestion(String question, Answers answers) {
     final List<String> params = new ArrayList<String>();
     params.add(question);
     for (String answer : answers) {
@@ -112,9 +109,8 @@ public class JijipingClient {
    * 質問を送信します。
    * 
    * @param answerIndex 回答選択肢のインデックス
-   * @throws IOException 通信中に問題が発生した場合
    */
-  public void sendAnswer(int answerIndex) throws IOException {
+  public void sendAnswer(int answerIndex) {
     writeCommand(SEND_ANSWER_COMMAND_ID, this.clientId, String.valueOf(answerIndex));
   }
 

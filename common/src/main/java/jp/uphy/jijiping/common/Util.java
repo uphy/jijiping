@@ -37,17 +37,26 @@ public class Util {
 
   private static String ENCODING = "UTF-8";
 
-  public static String listToCsv(final List<String> list) throws IOException {
+  public static String listToCsv(final List<String> list) {
     final StringWriter sw = new StringWriter();
     final CSVWriter<String[]> csvWriter = CSVWriterBuilder.newDefaultWriter(sw);
-    csvWriter.write(list.toArray(new String[0]));
+    try {
+      csvWriter.write(list.toArray(new String[0]));
+    } catch (IOException e) {
+      assert false;
+    }
     final String csv = sw.toString();
     return csv;
   }
 
-  public static List<String> csvToList(final String csv) throws IOException {
+  public static List<String> csvToList(final String csv) {
     final CSVReader<String[]> csvReader = CSVReaderBuilder.newDefaultReader(new StringReader(csv));
-    return Arrays.asList(csvReader.readNext());
+    try {
+      return Arrays.asList(csvReader.readNext());
+    } catch (IOException e) {
+      assert false;
+      return null;
+    }
   }
 
   /*
