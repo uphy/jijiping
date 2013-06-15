@@ -42,7 +42,7 @@ import com.google.inject.Inject;
 /**
  * @author Yuhi Ishikura
  */
-public class QuestionerActivity extends RoboActivity {
+public class YoungrFamilyActivity extends RoboActivity {
 
   @Inject
   private ErrorNotifier errorNotifier;
@@ -63,11 +63,16 @@ public class QuestionerActivity extends RoboActivity {
   private List<EditText> customAnswerTexts = new ArrayList<EditText>();
 
   private Communicator communicator;
-
+  
+  public static final String CHECKIN_ID = "checkinId"; //$NON-NLS-2$
+  /** ユーザ状態のインテントパラメータ名 */
+  public static final String STATE = "state"; //$NON-NLS-3$
+  
   /**
-   * {@link QuestionerActivity}オブジェクトを構築します。
+   * {@link YoungrFamilyActivity}オブジェクトを構築します。
    */
-  public QuestionerActivity() {
+  public YoungrFamilyActivity(Communicator communicator) {
+    super();
     this.communicator = new DummyCommunicator(this);
   }
 
@@ -77,7 +82,7 @@ public class QuestionerActivity extends RoboActivity {
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    setContentView(R.layout.questioner);
+    setContentView(R.layout.younger);
 
     final List<String> questionTypes = new ArrayList<String>();
     questionTypes.add(getString(R.string.yes_no));

@@ -23,6 +23,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
+import jp.uphy.jijiping.CommunicatorImpl;
 
 /**
  * @author Yuhi Ishikura
@@ -33,9 +34,10 @@ public class CheckInActivity extends RoboActivity {
   @InjectView(R.id.young)
   private Button youngButton;
   @InjectView(R.id.checkinId)
-  private EditText checkinId;
+  private EditText checkinText;
   
-  private Communicator communicator;  
+  private String id;
+  
   /**
    * {@inheritDoc}
    */
@@ -47,7 +49,6 @@ public class CheckInActivity extends RoboActivity {
     this.agedButton.setOnClickListener(new OnClickListener() {
       @Override
       public void onClick(@SuppressWarnings("unused") View v) {
-        checkin();
         startAgedPeople();
       }
     });
@@ -55,25 +56,22 @@ public class CheckInActivity extends RoboActivity {
     this.youngButton.setOnClickListener(new OnClickListener() {
       @Override
       public void onClick(@SuppressWarnings("unused") View v) {
-        checkin();
         startYoungPeople();
       }
     });
   }
   
   void startYoungPeople(){
-    final Intent intent = new Intent(this, QuestionerActivity.class);
-    this.startActivity(intent);
+    final Intent intent = new Intent(this, YoungrFamilyActivity.class);
+    intent.putExtra(IntentParamerter.checkinId.getName(), id);
+    intent.putExtra(IntentParamerter.state.getName(), YougerState.send);
+    this.startService(intent);
   }
   
   void startAgedPeople(){
-    final Intent intent = new Intent(this, AnswererActivity.class);
-    this.startActivity(intent);
-  }
-  
-  void checkin(){
-    this.communicator = new DummyCommunicator(this);
-    final String checkinId = this.checkinId.getText().toString();
-    this.communicator.checkIn();    
+    final Intent intent = new Intent(this, AgedFamillyService.class);
+    intent.putExtra(IntentParamerter.checkinId.getName(), id);
+    intent.putExtra(IntentParamerter.state.getName(), AgedState.wait);
+    this.startService(intent);
   }
 }

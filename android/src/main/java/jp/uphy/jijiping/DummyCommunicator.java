@@ -66,9 +66,9 @@ class DummyCommunicator implements Communicator {
    */
   @Override
   public void sendQuestion(String question, Answers answers) {
-    final Intent intent = new Intent(this.context, AnswererActivity.class);
-    intent.putExtra(AnswererActivity.INTENT_QUESTION, question);
-    intent.putExtra(AnswererActivity.INTENT_ANSWERS, answers);
+    final Intent intent = new Intent(this.context, AgedFamilyActivity.class);
+//    intent.putExtra(AgedFamilyActivity.INTENT_QUESTION, question);
+//    intent.putExtra(AgedFamilyActivity.INTENT_ANSWERS, answers);
     this.context.startActivity(intent);
   }
 

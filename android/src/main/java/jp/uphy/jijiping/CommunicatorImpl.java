@@ -36,7 +36,7 @@ public class CommunicatorImpl implements Communicator {
    * 
    * @param userId
    */
-  private CommunicatorImpl(String userId) {
+  CommunicatorImpl(String userId) {
     super();
     this.userId = userId;
   }

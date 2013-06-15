@@ -20,8 +20,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="jp.uphy.jijiping.QuestionerActivity" />
-        <activity android:name="jp.uphy.jijiping.AnswererActivity" />
+        <activity android:name="jp.uphy.jijiping.YoungrFamilyActivity" />
+        <activity android:name="jp.uphy.jijiping.AgedFamilyActivity" />
         <activity
             android:name="jp.uphy.jijiping.app.ErrorDialogActivity"
             android:theme="@android:style/Theme.Dialog" />
