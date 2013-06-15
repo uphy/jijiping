@@ -2,27 +2,17 @@
 <resources>
 
     <string name="app_name">ピンピン</string>
-
     <string name="yes_no">はい / いいえ</string>
-
     <string name="custom">カスタム</string>
-
     <string name="yes">はい</string>
-
     <string name="no">いいえ</string>
-
     <string name="question">質問</string>
-
     <string name="add_answer">回答追加</string>
-
     <string name="send">送信</string>
-    
-    <string name="id">No</string>
-    
+    <string name="id">名</string>
     <string name="young">わかもの</string>
-    
     <string name="aged">じいちゃんばあちゃん</string>
-    
     <string name="answer">回答</string>
+    <string name="startedPinpin">ピンピン開始しました。メッセージを待ち受けます。</string>
 
 </resources>

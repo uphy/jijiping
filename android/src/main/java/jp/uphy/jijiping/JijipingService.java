@@ -53,16 +53,17 @@ public class JijipingService extends RoboService implements JijipingClient.Recei
   @Override
   public void onStart(Intent intent, int startId) {
     super.onStart(intent, startId);
+    System.out.println(this);
     try {
-      this.client = new JijipingClient("192.168.0.10", 12542, this);
-      //this.client = new JijipingClient("uphy-home.ddo.jp", 12542, this);
+      //this.client = new JijipingClient("192.168.0.10", 12542, this);
+      this.client = new JijipingClient("uphy-home.ddo.jp", 12542, this);
     } catch (Throwable e) {
-      this.errorNotifier.notifyError(e, "Failed to start client.");
+      this.errorNotifier.notifyError(e, "Failed to start client."); //$NON-NLS-1$
       stopSelf();
       return;
     }
     if (intent == null) {
-      this.errorNotifier.notifyError("intent == null");
+      this.errorNotifier.notifyError("intent == null"); //$NON-NLS-1$
       stopSelf();
       return;
     }

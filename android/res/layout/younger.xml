@@ -68,13 +68,6 @@
                 android:layout_height="wrap_content"
                 android:text="@string/add_answer"
                 style="@style/Jijistyle" />
-
-            <Button
-                android:id="@+id/saveAnswers"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="回答を保存"
-                style="@style/Jijistyle" />
         </LinearLayout>
     </LinearLayout>
 

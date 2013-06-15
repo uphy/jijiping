@@ -33,6 +33,15 @@ public class Answers implements Serializable, Iterable<String> {
   private List<String> answers = new ArrayList<String>();
 
   /**
+   * {@link Answers}オブジェクトを構築します。
+   */
+  public Answers(String... answersArray) {
+    for (String answer : answersArray) {
+      this.answers.add(answer);
+    }
+  }
+
+  /**
    * 回答選択肢を追加します。
    * 
    * @param answer 回答選択肢

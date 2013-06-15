@@ -49,7 +49,7 @@ public class JijipingClient {
 
   private String clientId;
   private ClientThread clientThread;
-  private Map<String, Question> questionMap = new HashMap<String, Question>();
+  Map<String, Question> questionMap = new HashMap<String, Question>();
 
   static {
     logger.setLevel(Level.ALL);
@@ -140,7 +140,6 @@ public class JijipingClient {
     private Queue<String> messageQueue = new LinkedList<String>();
     private Receiver receiver;
     private boolean stopRequested = false;
-    private SelectionKey key;
 
     /**
      * {@link JijipingClient}オブジェクトを構築します。
@@ -166,7 +165,6 @@ public class JijipingClient {
     public void putMessage(String message) {
       synchronized (this.messageQueue) {
         this.messageQueue.add(message);
-        //        this.key.interestOps(this.key.interestOps() | SelectionKey.OP_WRITE);
       }
     }
 
@@ -177,11 +175,10 @@ public class JijipingClient {
     public void run() {
       try {
         Selector selector = Selector.open();
-        this.key = this.channel.register(selector, SelectionKey.OP_WRITE | SelectionKey.OP_READ);
+        this.channel.register(selector, SelectionKey.OP_WRITE | SelectionKey.OP_READ);
         while (selector.select() > 0) {
           final Set<SelectionKey> keys = selector.selectedKeys();
           for (Iterator<SelectionKey> it = keys.iterator(); it.hasNext();) {
-            @SuppressWarnings("hiding")
             final SelectionKey key = it.next();
             it.remove();
             if (key.isReadable()) {
@@ -197,7 +194,7 @@ public class JijipingClient {
                     final String[] idAnswerIndex = parameter.split(","); //$NON-NLS-1$
                     final String questionId = idAnswerIndex[0];
                     final int answerIndex = Integer.parseInt(idAnswerIndex[1]);
-                    final Question question = questionMap.get(questionId);
+                    final Question question = JijipingClient.this.questionMap.get(questionId);
                     this.receiver.answerReceived(question, answerIndex);
                     break;
                   case SEND_QUESTION_COMMAND_ID:
@@ -209,6 +206,7 @@ public class JijipingClient {
               }
             }
             if (key.isWritable()) {
+              // TODO 必要な時だけwrite有効にする
               try {
                 Thread.sleep(300);
               } catch (InterruptedException e) {
@@ -220,9 +218,6 @@ public class JijipingClient {
                   logger.fine("Writing => " + message); //$NON-NLS-1$
                   Util.write(this.channel, message);
                 }
-                //                if (this.messageQueue.isEmpty()) {
-                //                  this.key.interestOps(this.key.interestOps() & (~SelectionKey.OP_WRITE));
-                //                }
                 if (this.stopRequested) {
                   this.channel.close();
                   return;

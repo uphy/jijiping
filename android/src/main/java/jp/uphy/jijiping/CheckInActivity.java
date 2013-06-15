@@ -17,6 +17,7 @@ package jp.uphy.jijiping;
 
 import roboguice.activity.RoboActivity;
 import roboguice.inject.InjectView;
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.Display;
@@ -52,10 +53,10 @@ public class CheckInActivity extends RoboActivity {
     WindowManager wm = (WindowManager)getSystemService(WINDOW_SERVICE);
     // ディスプレイのインスタンス生成
     Display disp = wm.getDefaultDisplay();
-    
-    agedButton.setLayoutParams(new LinearLayout.LayoutParams((int)(disp.getWidth()*0.5),(int)(disp.getWidth()*0.5)) );
-    youngButton.setLayoutParams(new LinearLayout.LayoutParams((int)(disp.getWidth()*0.5),(int)(disp.getWidth()*0.5)) );
-    
+
+    this.agedButton.setLayoutParams(new LinearLayout.LayoutParams((int)(disp.getWidth() * 0.5), (int)(disp.getWidth() * 0.5)));
+    this.youngButton.setLayoutParams(new LinearLayout.LayoutParams((int)(disp.getWidth() * 0.5), (int)(disp.getWidth() * 0.5)));
+
     this.agedButton.setOnClickListener(new OnClickListener() {
 
       @Override
@@ -72,7 +73,7 @@ public class CheckInActivity extends RoboActivity {
       }
     });
 
-    this.checkinText.setText("sample");
+    this.checkinText.setText("bot");
   }
 
   void startYoungPeople() {
@@ -84,7 +85,18 @@ public class CheckInActivity extends RoboActivity {
 
   void startAgedPeople() {
     startService();
-    finish();
+    new AlertDialog.Builder(this).setMessage(R.string.startedPinpin).create().show();
+    new Thread() {
+
+      public void run() {
+        try {
+          Thread.sleep(2000);
+        } catch (InterruptedException e) {
+          return;
+        }
+        finish();
+      }
+    }.start();
   }
 
   private void startService() {

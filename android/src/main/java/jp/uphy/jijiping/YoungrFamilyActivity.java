@@ -31,6 +31,7 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
@@ -38,6 +39,7 @@ import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 
@@ -63,8 +65,6 @@ public class YoungrFamilyActivity extends RoboActivity {
   private LinearLayout customAnswers;
   @InjectView(R.id.addAnswer)
   private Button addCustomAnswerButton;
-  @InjectView(R.id.saveAnswers)
-  private Button saveCustomAnswersButton;
   private List<EditText> customAnswerTexts = new ArrayList<EditText>();
 
   private List<SendQuestionServiceConnection> connections = new ArrayList<YoungrFamilyActivity.SendQuestionServiceConnection>();
@@ -124,19 +124,24 @@ public class YoungrFamilyActivity extends RoboActivity {
         addNewAnswerEditField();
       }
     });
-    this.saveCustomAnswersButton.setOnClickListener(new OnClickListener() {
-
-      @Override
-      public void onClick(@SuppressWarnings("unused") View v) {
-        saveCustomAnswers();
-      }
-    });
     updateViewByQuestionTypeSelection();
   }
 
   void addNewAnswerEditField() {
-    final EditText text = new EditText(this);
-    this.customAnswers.addView(text);
+    final LayoutInflater layoutInflator = (LayoutInflater)getSystemService(LAYOUT_INFLATER_SERVICE);
+    final LinearLayout layout = (LinearLayout)layoutInflator.inflate(R.layout.custom_editor_row, null);
+    final EditText text = (EditText)layout.findViewById(R.id.text);
+    final ImageButton imageButton = (ImageButton)layout.findViewById(R.id.deleteCustomText);
+    imageButton.setImageResource(R.drawable.delete);
+    imageButton.setOnClickListener(new OnClickListener() {
+
+      @Override
+      public void onClick(View v) {
+        customAnswers.removeView(layout);
+      }
+    });
+
+    this.customAnswers.addView(layout);
     this.customAnswerTexts.add(text);
   }
 

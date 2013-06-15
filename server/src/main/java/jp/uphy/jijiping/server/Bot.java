@@ -15,11 +15,13 @@
  */
 package jp.uphy.jijiping.server;
 
+import jp.uphy.jijiping.common.Answers;
 import jp.uphy.jijiping.common.JijipingClient;
 import jp.uphy.jijiping.common.Question;
 
 import java.io.IOException;
 import java.net.UnknownHostException;
+import java.util.Timer;
 
 
 /**
@@ -45,10 +47,23 @@ public class Bot {
 
       @Override
       public void questionReceived(Question question) {
-        client.sendAnswer(question, 0);
+        final int answer = (int)(question.getAnswers().size() * Math.random());
+        client.sendAnswer(question, answer);
       }
     });
-    this.client.checkin("sample");
+    this.client.checkin("bot");
+
+    Question[] q = new Question[] {new Question("", "元気ですか？", new Answers("はい", "いいえ")), new Question("", "元気ですか？", new Answers("はい", "とっても", "Great!!")),
+        new Question("", "ごはん食べた？", new Answers("はい", "いいえ"))};
+    while (true) {
+      Question question = q[(int)(Math.random() * q.length)];
+      this.client.sendQuestion(question.getQuestion(), question.getAnswers());
+      try {
+        Thread.sleep(1000 * 60);
+      } catch (InterruptedException e) {
+        throw new RuntimeException(e);
+      }
+    }
   }
 
   public static void main(String[] args) throws UnknownHostException, IOException {

@@ -17,13 +17,13 @@ package jp.uphy.jijiping;
 
 import jp.uphy.jijiping.common.Question;
 
+import roboguice.activity.RoboActivity;
+import roboguice.inject.InjectView;
 import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.TextView;
-import roboguice.activity.RoboActivity;
-import roboguice.inject.InjectView;
 
 
 /**
@@ -51,9 +51,17 @@ public class AnswerActivity extends RoboActivity {
     setContentView(R.layout.answer);
 
     final Question question = (Question)getIntent().getSerializableExtra(INTENT_QUESTION);
-    final int answerIndex = getIntent().getIntExtra(INTENT_ANSWER, 0);
-    final String answer = question.getAnswers().getAnswer(answerIndex);
+    if (question == null) {
+      finish();
+      return;
+    }
+    final int answerIndex = getIntent().getIntExtra(INTENT_ANSWER, -1);
+    if (answerIndex < 0) {
+      finish();
+      return;
+    }
 
+    final String answer = question.getAnswers().getAnswer(answerIndex);
     this.questionView.setText(question.getQuestion());
     this.answerView.setText(answer);
     this.closeButton.setOnClickListener(new OnClickListener() {

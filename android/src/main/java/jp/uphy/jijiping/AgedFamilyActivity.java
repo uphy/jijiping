@@ -95,6 +95,12 @@ public class AgedFamilyActivity extends Activity {
     final SendAnswerServiceConnection connection = new SendAnswerServiceConnection(i);
     this.connections.add(connection);
     bindService(new Intent(this, JijipingService.class), connection, Context.BIND_AUTO_CREATE);
+    try {
+      Thread.sleep(1000);
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    }
+    finish();
   }
 
   /**
