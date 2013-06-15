@@ -51,6 +51,7 @@ public final class R {
         public static final int young=0x7f040009;
     }
     public static final class style {
+        public static final int Jijistyle=0x7f050001;
         public static final int Theme_Transparent=0x7f050000;
     }
 }
