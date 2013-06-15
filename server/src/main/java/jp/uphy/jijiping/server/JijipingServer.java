@@ -47,6 +47,7 @@ import java.util.logging.Logger;
 public class JijipingServer {
 
   private Map<String, Set<ClientContext>> clientIdToContext = new HashMap<String, Set<JijipingServer.ClientContext>>();
+
   private static Logger logger = Logger.getLogger(JijipingServer.class.getName());
 
   static {
@@ -82,7 +83,7 @@ public class JijipingServer {
             logger.fine("New client accepted : " + channel); //$NON-NLS-1$
             channel.configureBlocking(false);
             SelectionKey clientKey = channel.register(selector, SelectionKey.OP_READ);
-            final ClientContext context = new ClientContext();
+            final ClientContext context = new ClientContext(clientKey);
             clientKey.attach(context);
           } else {
             if (key.isReadable()) {
@@ -102,8 +103,9 @@ public class JijipingServer {
               }
               switch (commandId) {
                 case JijipingClient.CHECKIN_COMMAND_ID:
-                  context.setKey(key);
+                  checkout(context);
                   checkin(clientId, context);
+                  listClients();
                   continue;
                 case JijipingClient.CHECKOUT_COMMAND_ID:
                   checkout(clientId, context);
@@ -131,6 +133,20 @@ public class JijipingServer {
     }
   }
 
+  private void listClients() {
+    logger.fine("*** Current Clients ***");
+    synchronized (this.clientIdToContext) {
+      for (String clientId : this.clientIdToContext.keySet()) {
+        logger.fine(clientId + "=>");
+        for (ClientContext context : this.clientIdToContext.get(clientId)) {
+          final SelectionKey key = context.key;
+          logger.fine(key.channel().toString());
+        }
+      }
+    }
+    logger.fine("***********************");
+  }
+
   private static String exceptionToString(Throwable e) {
     final StringWriter sw = new StringWriter();
     final PrintWriter pw = new PrintWriter(sw);
@@ -141,8 +157,28 @@ public class JijipingServer {
 
   private void checkout(String clientId, ClientContext context) {
     synchronized (this.clientIdToContext) {
-      final Set<ClientContext> contexts = this.clientIdToContext.get(clientId);
-      contexts.remove(context);
+      checkoutWithoutLock(clientId, context);
+    }
+  }
+
+  private void checkoutWithoutLock(String clientId, ClientContext context) {
+    final Set<ClientContext> contexts = this.clientIdToContext.get(clientId);
+    contexts.remove(context);
+  }
+
+  private void checkout(ClientContext context) {
+    final String host = context.getHost();
+    if (host == null) {
+      return;
+    }
+    synchronized (this.clientIdToContext) {
+      for (String clientId : this.clientIdToContext.keySet()) {
+        for (ClientContext c : this.clientIdToContext.get(clientId)) {
+          if (host.equals(c.getHost())) {
+            checkoutWithoutLock(clientId, c);
+          }
+        }
+      }
     }
   }
 
@@ -159,6 +195,7 @@ public class JijipingServer {
   }
 
   void write(ClientContext sender, String clientId, String line) {
+    logger.fine(String.format("Write requested \"%s\" to \"%s\"", line, clientId)); //$NON-NLS-1$
     for (ClientContext context : getContexts(clientId)) {
       if (context == sender) {
         continue;
@@ -180,6 +217,19 @@ public class JijipingServer {
     private Queue<String> writeQueue = new LinkedList<String>();
     private SelectionKey key;
 
+    ClientContext(SelectionKey clientKey) {
+      this.key = clientKey;
+    }
+
+    public String getHost() {
+      try {
+        final InetSocketAddress addr = (InetSocketAddress)(((SocketChannel)key.channel()).getRemoteAddress());
+        return addr.getHostName();
+      } catch (IOException ex) {
+        return null;
+      }
+    }
+
     /**
      * keyを設定します。
      * 
@@ -193,9 +243,6 @@ public class JijipingServer {
 
     void pushMessage(String message) {
       synchronized (this.writeQueue) {
-        if (this.key == null) { // checkin前
-          return;
-        }
         this.writeQueue.add(message);
         try {
           this.key.interestOps(this.key.interestOps() | SelectionKey.OP_WRITE);
@@ -215,6 +262,12 @@ public class JijipingServer {
           this.key.interestOps(this.key.interestOps() & (~SelectionKey.OP_WRITE));
         }
         return message;
+      }
+    }
+
+    void kill() {
+      synchronized (this.writeQueue) {
+        this.key.cancel();
       }
     }
   }
