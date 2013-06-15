@@ -15,23 +15,27 @@
  */
 package jp.uphy.jijiping;
 
+import roboguice.activity.RoboActivity;
 import roboguice.inject.InjectView;
-import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
-
+import android.widget.EditText;
 
 /**
  * @author Yuhi Ishikura
  */
-public class CheckInActivity extends Activity {
+public class CheckInActivity extends RoboActivity {
   @InjectView(R.id.aged)
   private Button agedButton;
   @InjectView(R.id.young)
   private Button youngButton;
+  @InjectView(R.id.checkinId)
+  private EditText checkinId;
   
+  private Communicator communicator;  
   /**
    * {@inheritDoc}
    */
@@ -41,19 +45,35 @@ public class CheckInActivity extends Activity {
     setContentView(R.layout.checkin);
     
     this.agedButton.setOnClickListener(new OnClickListener() {
-
       @Override
       public void onClick(@SuppressWarnings("unused") View v) {
-        // お年寄り
+        checkin();
+        startAgedPeople();
       }
     });
     
     this.youngButton.setOnClickListener(new OnClickListener() {
-
       @Override
       public void onClick(@SuppressWarnings("unused") View v) {
-        // 若者
+        checkin();
+        startYoungPeople();
       }
     });
+  }
+  
+  void startYoungPeople(){
+    final Intent intent = new Intent(this, QuestionerActivity.class);
+    this.startActivity(intent);
+  }
+  
+  void startAgedPeople(){
+    final Intent intent = new Intent(this, AnswererActivity.class);
+    this.startActivity(intent);
+  }
+  
+  void checkin(){
+    this.communicator = new DummyCommunicator(this);
+    final String checkinId = this.checkinId.getText().toString();
+    this.communicator.checkIn();    
   }
 }

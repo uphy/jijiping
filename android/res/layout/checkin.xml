@@ -17,7 +17,7 @@
             android:textAppearance="?android:attr/textAppearanceSmall" />
 
         <EditText
-            android:id="@+id/question"
+            android:id="@+id/checkinId"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
