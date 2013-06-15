@@ -14,26 +14,30 @@ public final class R {
         public static final int icon=0x7f020000;
     }
     public static final class id {
-        public static final int addAnswer=0x7f060008;
-        public static final int customAnswers=0x7f060007;
-        public static final int customAnswersPane=0x7f060006;
-        public static final int error_close=0x7f060003;
-        public static final int error_divider=0x7f060001;
-        public static final int error_exception=0x7f060002;
-        public static final int error_message=0x7f060000;
-        public static final int question=0x7f060004;
-        public static final int questionType=0x7f060005;
-        public static final int saveAnswers=0x7f060009;
-        public static final int sendQuestion=0x7f06000a;
+        public static final int addAnswer=0x7f06000a;
+        public static final int aged=0x7f060001;
+        public static final int customAnswers=0x7f060009;
+        public static final int customAnswersPane=0x7f060008;
+        public static final int error_close=0x7f060006;
+        public static final int error_divider=0x7f060004;
+        public static final int error_exception=0x7f060005;
+        public static final int error_message=0x7f060003;
+        public static final int question=0x7f060000;
+        public static final int questionType=0x7f060007;
+        public static final int saveAnswers=0x7f06000b;
+        public static final int sendQuestion=0x7f06000c;
+        public static final int young=0x7f060002;
     }
     public static final class layout {
-        public static final int error_dialog=0x7f030000;
-        public static final int questioner=0x7f030001;
+        public static final int checkin=0x7f030000;
+        public static final int error_dialog=0x7f030001;
+        public static final int questioner=0x7f030002;
     }
     public static final class string {
         public static final int add_answer=0x7f040006;
         public static final int app_name=0x7f040000;
         public static final int custom=0x7f040002;
+        public static final int id=0x7f040008;
         public static final int no=0x7f040004;
         public static final int question=0x7f040005;
         public static final int send=0x7f040007;

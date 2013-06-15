@@ -16,5 +16,7 @@
     <string name="add_answer">回答追加</string>
 
     <string name="send">送信</string>
+    
+    <string name="id">ログインID</string>
 
 </resources>

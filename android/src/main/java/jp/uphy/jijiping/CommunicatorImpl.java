@@ -15,6 +15,8 @@
  */
 package jp.uphy.jijiping;
 
+import java.net.URL;
+
 
 /**
  * @author ishikura
