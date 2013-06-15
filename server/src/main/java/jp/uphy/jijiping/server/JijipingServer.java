@@ -15,23 +15,23 @@
  */
 package jp.uphy.jijiping.server;
 
-import jp.uphy.jijiping.common.Answers;
-import jp.uphy.jijiping.common.IdAlreadyUsedException;
 import jp.uphy.jijiping.common.JijipingClient;
-import jp.uphy.jijiping.common.JijipingClient.Receiver;
+import jp.uphy.jijiping.common.Util;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.util.ArrayList;
+import java.net.InetSocketAddress;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.Selector;
+import java.nio.channels.ServerSocketChannel;
+import java.nio.channels.SocketChannel;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.Map;
+import java.util.Queue;
+import java.util.Set;
 import java.util.StringTokenizer;
 
 
@@ -40,7 +40,7 @@ import java.util.StringTokenizer;
  */
 public class JijipingServer {
 
-  private Map<String, List<ClientHandler>> clientHandlers = new HashMap<String, List<ClientHandler>>();
+  private Map<String, Set<ClientContext>> clientIdToContext = new HashMap<String, Set<JijipingServer.ClientContext>>();
 
   /**
    * サーバーを開始します。
@@ -49,150 +49,137 @@ public class JijipingServer {
    * @throws IOException 開始できなかった場合
    */
   public void start(int port) throws IOException {
-    final ServerSocket serverSocket = new ServerSocket(port);
-    while (true) {
-      final Socket socket = serverSocket.accept();
-      new ClientHandler(socket).start();
-    }
-  }
+    final ServerSocketChannel serverChannel = ServerSocketChannel.open();
+    serverChannel.socket().setReuseAddress(true);
+    serverChannel.socket().bind(new InetSocketAddress(port));
+    serverChannel.configureBlocking(false);
+    final Selector selector = Selector.open();
+    final SelectionKey serverKey = serverChannel.register(selector, SelectionKey.OP_ACCEPT);
+    while (selector.select() > 0) {
+      Set<SelectionKey> keys = selector.selectedKeys();
+      for (Iterator<SelectionKey> it = keys.iterator(); it.hasNext();) {
+        SelectionKey key = it.next();
+        it.remove();
+        if (key == serverKey && key.isAcceptable()) {
+          final SocketChannel channel = serverChannel.accept();
+          channel.configureBlocking(false);
+          SelectionKey clientKey = channel.register(selector, SelectionKey.OP_READ);
+          final ClientContext context = new ClientContext();
+          clientKey.attach(context);
+        } else {
+          if (key.isReadable()) {
+            final SocketChannel channel = (SocketChannel)key.channel();
+            final String line = Util.read(channel);
+            final ClientContext context = (ClientContext)key.attachment();
 
-  List<ClientHandler> getClientHandlers(String clientId) {
-    synchronized (this.clientHandlers) {
-      final List<ClientHandler> handlers = this.clientHandlers.get(clientId);
-      if (handlers == null) {
-        return Collections.emptyList();
+            StringTokenizer tokenizer = new StringTokenizer(line, ":"); //$NON-NLS-1$
+            final int commandId = Integer.parseInt(tokenizer.nextToken());
+            final String clientId = tokenizer.nextToken();
+            final String parameter;
+            if (tokenizer.hasMoreTokens()) {
+              parameter = tokenizer.nextToken();
+            } else {
+              parameter = ""; //$NON-NLS-1$
+            }
+            switch (commandId) {
+              case JijipingClient.CHECKIN_COMMAND_ID:
+                context.setKey(key);
+                checkin(clientId, context);
+                continue;
+              case JijipingClient.CHECKOUT_COMMAND_ID:
+                checkout(clientId, context);
+                continue;
+            }
+
+            write(context, clientId, String.valueOf(commandId) + ":" + parameter); //$NON-NLS-1$
+          }
+          if (key.isWritable() && key.isValid()) {
+            final ClientContext context = (ClientContext)key.attachment();
+            String message;
+            final SocketChannel channel = (SocketChannel)key.channel();
+            while ((message = context.popMessage()) != null) {
+              Util.write(channel, message);
+            }
+          }
+        }
       }
-      return handlers;
     }
   }
 
-  void checkin(String clientId, ClientHandler h) {
-    synchronized (this.clientHandlers) {
-      List<ClientHandler> handlers = this.clientHandlers.get(clientId);
-      if (handlers == null) {
-        handlers = new ArrayList<JijipingServer.ClientHandler>();
-        this.clientHandlers.put(clientId, handlers);
+  private void checkout(String clientId, ClientContext context) {
+    synchronized (this.clientIdToContext) {
+      final Set<ClientContext> contexts = this.clientIdToContext.get(clientId);
+      contexts.remove(context);
+    }
+  }
+
+  private void checkin(String clientId, ClientContext context) {
+    synchronized (this.clientIdToContext) {
+      Set<ClientContext> contexts = this.clientIdToContext.get(clientId);
+      if (contexts == null) {
+        contexts = new HashSet<JijipingServer.ClientContext>();
+        contexts.add(context);
+        this.clientIdToContext.put(clientId, contexts);
       }
-      handlers.add(h);
+      contexts.add(context);
     }
   }
 
-  void checkout(String clientId, ClientHandler h) {
-    synchronized (this.clientHandlers) {
-      List<ClientHandler> handlers = this.clientHandlers.get(clientId);
-      if (handlers == null) {
-        return;
+  void write(ClientContext sender, String clientId, String line) {
+    for (ClientContext context : getContexts(clientId)) {
+      if (context == sender) {
+        continue;
       }
-      handlers.remove(h);
+      context.pushMessage(line);
     }
   }
 
-  class ClientHandler extends Thread {
-
-    /** */
-    private static final String ENCODING = "UTF-8"; //$NON-NLS-1$
-    private Socket socket;
-    private Writer writer;
-
-    ClientHandler(Socket socket) throws IOException {
-      this.socket = socket;
-      this.writer = new OutputStreamWriter(socket.getOutputStream(), ENCODING);
+  Set<ClientContext> getContexts(String clientId) {
+    Set<ClientContext> contexts = this.clientIdToContext.get(clientId);
+    if (contexts == null) {
+      return Collections.emptySet();
     }
+    return contexts;
+  }
 
-    void sendCommand(int commandId, String params) throws IOException {
-      System.out.println("writing");
-      this.writer.write(String.valueOf(commandId) + ":" + params); //$NON-NLS-1$
-      this.writer.flush();
-    }
+  static class ClientContext {
+
+    private Queue<String> writeQueue = new LinkedList<String>();
+    private SelectionKey key;
 
     /**
-     * {@inheritDoc}
+     * keyを設定します。
+     * 
+     * @param key key
      */
-    @Override
-    public void run() {
-      try {
-        final BufferedReader br = new BufferedReader(new InputStreamReader(this.socket.getInputStream(), ENCODING));
-
-        l:while (true) {
-          String line;
-          synchronized (ClientHandler.this) {
-            System.out.println("reading");
-            line = br.readLine();
-          }
-          if (line.length() == 0) {
-            continue;
-          }
-          StringTokenizer tokenizer = new StringTokenizer(line, ":"); //$NON-NLS-1$
-          final int commandId = Integer.parseInt(tokenizer.nextToken());
-          final String clientId = tokenizer.nextToken();
-          final String parameter;
-          if (tokenizer.hasMoreTokens()) {
-            parameter = tokenizer.nextToken();
-          } else {
-            parameter = ""; //$NON-NLS-1$
-          }
-          switch (commandId) {
-            case JijipingClient.CHECKIN_COMMAND_ID:
-              checkin(clientId, this);
-              continue l;
-            case JijipingClient.CHECKOUT_COMMAND_ID:
-              checkout(clientId, this);
-              break l;
-          }
-
-          for (ClientHandler to : getClientHandlers(clientId)) {
-            if (to == this) {
-              continue;
-            }
-            to.sendCommand(commandId, parameter);
-          }
-        }
-      } catch (IOException e) {
-        throw new RuntimeException(e);
+    public void setKey(SelectionKey key) {
+      synchronized (this.writeQueue) {
+        this.key = key;
       }
     }
 
+    void pushMessage(String message) {
+      synchronized (this.writeQueue) {
+        if (this.key == null) { // checkin前
+          return;
+        }
+        this.writeQueue.add(message);
+        this.key.interestOps(this.key.interestOps() | SelectionKey.OP_WRITE);
+      }
+    }
+
+    String popMessage() {
+      synchronized (this.writeQueue) {
+        if (this.writeQueue.size() == 0) {
+          return null;
+        }
+        final String message = this.writeQueue.poll();
+        if (this.writeQueue.isEmpty()) {
+          this.key.interestOps(this.key.interestOps() & (~SelectionKey.OP_WRITE));
+        }
+        return message;
+      }
+    }
   }
 
-  public static void main(String[] args) throws IOException {
-    final int port = 10023;
-    new Thread() {
-
-      public void run() {
-        final JijipingServer server = new JijipingServer();
-        try {
-          server.start(port);
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
-      }
-    }.start();
-    try {
-      Thread.sleep(1000);
-    } catch (InterruptedException e1) {
-      throw new RuntimeException(e1);
-    }
-    Receiver receiver = new Receiver() {
-
-      @Override
-      public void questionReceived(String question, Answers answer) {
-        System.out.println(question);
-      }
-
-      @Override
-      public void answerReceived(int answerIndex) {
-        // TODO Auto-generated method stub
-
-      }
-    };
-    final JijipingClient client1 = new JijipingClient("localhost", port, receiver);
-    final JijipingClient client2 = new JijipingClient("localhost", port, receiver);
-    try {
-      client1.checkin("aaa");
-      client2.checkin("aaa");
-    } catch (IdAlreadyUsedException e) {
-      throw new RuntimeException(e);
-    }
-    client1.sendQuestion("aiueo", new Answers());
-  }
 }
