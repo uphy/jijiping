@@ -206,11 +206,13 @@ public class JijipingServer {
   }
 
   Set<ClientContext> getContexts(String clientId) {
-    Set<ClientContext> contexts = this.clientIdToContext.get(clientId);
-    if (contexts == null) {
-      return Collections.emptySet();
+    synchronized (this.clientIdToContext) {
+      Set<ClientContext> contexts = this.clientIdToContext.get(clientId);
+      if (contexts == null) {
+        return Collections.emptySet();
+      }
+      return contexts;
     }
-    return contexts;
   }
 
   static class ClientContext {
