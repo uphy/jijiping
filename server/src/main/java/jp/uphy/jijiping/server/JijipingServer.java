@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.InetSocketAddress;
+import java.nio.channels.CancelledKeyException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
@@ -122,8 +123,9 @@ public class JijipingServer {
             }
           }
         } catch (Throwable e) {
-          key.channel().close();
           logger.severe(exceptionToString(e));
+          key.channel().close();
+          key.cancel();
         }
       }
     }
@@ -195,7 +197,11 @@ public class JijipingServer {
           return;
         }
         this.writeQueue.add(message);
-        this.key.interestOps(this.key.interestOps() | SelectionKey.OP_WRITE);
+        try {
+          this.key.interestOps(this.key.interestOps() | SelectionKey.OP_WRITE);
+        } catch (CancelledKeyException ex) {
+          return;
+        }
       }
     }
 
