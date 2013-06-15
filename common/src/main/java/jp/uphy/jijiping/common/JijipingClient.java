@@ -29,6 +29,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 
 /**
@@ -40,11 +43,19 @@ public class JijipingClient {
   public static final int CHECKIN_COMMAND_ID = 0;
   /** チェックアウトコマンドのIDです。 */
   public static final int CHECKOUT_COMMAND_ID = 1;
+  static final Logger logger = Logger.getLogger(JijipingClient.class.getName());
   private static final int SEND_QUESTION_COMMAND_ID = 2;
   private static final int SEND_ANSWER_COMMAND_ID = 3;
 
   private String clientId;
   private ClientThread clientThread;
+
+  static {
+    logger.setLevel(Level.ALL);
+    final ConsoleHandler h = new ConsoleHandler();
+    h.setLevel(Level.ALL);
+    logger.addHandler(h);
+  }
 
   /**
    * {@link JijipingClient}オブジェクトを構築します。
@@ -120,6 +131,7 @@ public class JijipingClient {
 
   private void writeCommand(int commandId, @SuppressWarnings("hiding") String clientId, String data) {
     final String message = String.format("%d:%s:%s", Integer.valueOf(commandId), clientId, data); //$NON-NLS-1$
+    logger.fine("Write requested => " + message); //$NON-NLS-1$
     this.clientThread.putMessage(message);
   }
 
@@ -129,6 +141,7 @@ public class JijipingClient {
     private Queue<String> messageQueue = new LinkedList<String>();
     private Receiver receiver;
     private boolean stopRequested = false;
+    private SelectionKey key;
 
     /**
      * {@link JijipingClient}オブジェクトを構築します。
@@ -154,6 +167,7 @@ public class JijipingClient {
     public void putMessage(String message) {
       synchronized (this.messageQueue) {
         this.messageQueue.add(message);
+//        this.key.interestOps(this.key.interestOps() | SelectionKey.OP_WRITE);
       }
     }
 
@@ -164,16 +178,18 @@ public class JijipingClient {
     public void run() {
       try {
         Selector selector = Selector.open();
-        this.channel.register(selector, SelectionKey.OP_WRITE | SelectionKey.OP_READ);
+        this.key = this.channel.register(selector, SelectionKey.OP_WRITE | SelectionKey.OP_READ);
         while (selector.select() > 0) {
           final Set<SelectionKey> keys = selector.selectedKeys();
           for (Iterator<SelectionKey> it = keys.iterator(); it.hasNext();) {
+            @SuppressWarnings("hiding")
             final SelectionKey key = it.next();
             it.remove();
             if (key.isReadable()) {
               final BufferedReader reader = new BufferedReader(new StringReader(Util.read(this.channel)));
               String message;
               while ((message = reader.readLine()) != null) {
+                logger.fine("Reading => " + message); //$NON-NLS-1$
                 final int delimiterIndex = message.indexOf(':');
                 final int commandId = Integer.parseInt(message.substring(0, delimiterIndex));
                 final String parameter = message.substring(delimiterIndex + 1);
@@ -195,12 +211,17 @@ public class JijipingClient {
                     throw new UnsupportedOperationException();
                 }
               }
-            } else if (key.isWritable()) {
+            }
+            if (key.isWritable()) {
               synchronized (this.messageQueue) {
                 while (this.messageQueue.size() > 0) {
                   final String message = this.messageQueue.poll();
+                  logger.fine("Writing => " + message); //$NON-NLS-1$
                   Util.write(this.channel, message);
                 }
+//                if (this.messageQueue.isEmpty()) {
+//                  this.key.interestOps(this.key.interestOps() & (~SelectionKey.OP_WRITE));
+//                }
                 if (this.stopRequested) {
                   this.channel.close();
                   return;

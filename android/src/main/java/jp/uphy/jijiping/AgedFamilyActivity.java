@@ -26,11 +26,9 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.AdapterView.OnItemSelectedListener;
 
 
 /**
@@ -91,6 +89,7 @@ public class AgedFamilyActivity extends Activity {
   void send(int i) {
     final SendAnswerServiceConnection connection = new SendAnswerServiceConnection(i);
     bindService(new Intent(this, JijipingService.class), connection, Context.BIND_AUTO_CREATE);
+    finish();
   }
 
   class SendAnswerServiceConnection implements ServiceConnection {

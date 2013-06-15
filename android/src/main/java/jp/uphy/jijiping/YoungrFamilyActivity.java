@@ -161,7 +161,7 @@ public class YoungrFamilyActivity extends RoboActivity {
     }
     final SendQuestionServiceConnection connection = new SendQuestionServiceConnection(question, answers);
     bindService(new Intent(this, JijipingService.class), connection, Context.BIND_AUTO_CREATE);
-    unbindService(connection);
+    //unbindService(connection);
   }
 
   void saveCustomAnswers() {

@@ -159,6 +159,7 @@ public class JijipingServer {
   }
 
   void write(ClientContext sender, String clientId, String line) {
+    logger.fine(String.format("Write requested \"%s\" to \"%s\"", line, clientId)); //$NON-NLS-1$
     for (ClientContext context : getContexts(clientId)) {
       if (context == sender) {
         continue;
