@@ -24,6 +24,7 @@ import android.view.Display;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
@@ -39,6 +40,8 @@ public class CheckInActivity extends RoboActivity {
   private ImageButton agedButton;
   @InjectView(R.id.young)
   private ImageButton youngButton;
+  @InjectView(R.id.help)
+  private Button helpButton;
   @InjectView(R.id.checkinId)
   private EditText checkinText;
 
@@ -70,6 +73,15 @@ public class CheckInActivity extends RoboActivity {
       @Override
       public void onClick(@SuppressWarnings("unused") View v) {
         startYoungPeople();
+      }
+    });
+
+    this.helpButton.setOnClickListener(new OnClickListener() {
+
+      @Override
+      public void onClick(@SuppressWarnings("unused") View v) {
+        final Intent intent = new Intent(CheckInActivity.this, HelpActivity.class);
+        startActivity(intent);
       }
     });
 

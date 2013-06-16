@@ -54,7 +54,7 @@ public class Bot {
     this.client.checkin("bot");
 
     Question[] q = new Question[] {new Question("", "元気ですか？", new Answers("はい", "いいえ")), new Question("", "元気ですか？", new Answers("はい", "とっても", "Great!!")),
-        new Question("", "ごはん食べた？", new Answers("はい", "いいえ"))};
+        new Question("", "ごはん食べた？", new Answers("はい", "いいえ")), new Question("", "体調どう？", new Answers("すこぶる良い", "良い", "そこそこ良い"))};
     while (true) {
       Question question = q[(int)(Math.random() * q.length)];
       this.client.sendQuestion(question.getQuestion(), question.getAnswers());

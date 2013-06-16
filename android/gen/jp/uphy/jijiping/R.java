@@ -25,17 +25,18 @@ public final class R {
         public static final int checkinId=0x7f06000a;
         public static final int customAnswers=0x7f060003;
         public static final int customAnswersPane=0x7f060002;
-        public static final int deleteCustomText=0x7f06000e;
-        public static final int error_close=0x7f060012;
-        public static final int error_divider=0x7f060010;
-        public static final int error_exception=0x7f060011;
-        public static final int error_message=0x7f06000f;
-        public static final int imageView1=0x7f060013;
+        public static final int deleteCustomText=0x7f06000f;
+        public static final int error_close=0x7f060013;
+        public static final int error_divider=0x7f060011;
+        public static final int error_exception=0x7f060012;
+        public static final int error_message=0x7f060010;
+        public static final int help=0x7f06000d;
+        public static final int imageView1=0x7f060014;
         public static final int question=0x7f060000;
         public static final int questionType=0x7f060001;
         public static final int saveAnswers=0x7f060005;
         public static final int sendQuestion=0x7f060006;
-        public static final int text=0x7f06000d;
+        public static final int text=0x7f06000e;
         public static final int young=0x7f06000c;
     }
     public static final class layout {
@@ -52,6 +53,7 @@ public final class R {
         public static final int answer=0x7f04000b;
         public static final int app_name=0x7f040000;
         public static final int custom=0x7f040002;
+        public static final int help=0x7f04000d;
         public static final int id=0x7f040008;
         public static final int no=0x7f040004;
         public static final int question=0x7f040005;
